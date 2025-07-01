@@ -1,4 +1,4 @@
-package security_insights_spec
+package spec
 
 import (
 	"time"
