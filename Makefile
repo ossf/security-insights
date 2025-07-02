@@ -8,13 +8,13 @@ lintyml:
 	@echo "  >  Linting .github/security-insights.yml ..."
 	@cue vet -d '#SecurityInsights' ./spec .github/security-insights.yml
 	@echo "  >  Linting template-full.yml ..."
-	cue vet -d '#SecurityInsights' ./spec template-full.yml
+	cue vet -d '#SecurityInsights' ./spec examples/example-full.yml
 	@echo "  >  Linting template-minimum.yml ..."
-	cue vet -d '#SecurityInsights' ./spec template-minimum.yml
+	cue vet -d '#SecurityInsights' ./spec examples/example-minimum.yml
 	@echo "  >  Linting template-multi-repository-project-reuse.yml ..."
-	cue vet -d '#SecurityInsights' ./spec template-multi-repository-project-reuse.yml
+	cue vet -d '#SecurityInsights' ./spec examples/example-multi-repository-project-reuse.yml
 	@echo "  >  Linting template-multi-repository-project.yml ..."
-	cue vet -d '#SecurityInsights' ./spec template-multi-repository-project.yml
+	cue vet -d '#SecurityInsights' ./spec examples/example-multi-repository-project.yml
 
 cuegen:
 	@echo "  >  Generating types from cue schema ..."
