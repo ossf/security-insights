@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4.2.2
 
       - name: Setup Cue
-        uses: cue-lang/setup-cue@v1.0.0
+        uses: cue-lang/setup-cue@v1.0.1
 
       - name: Validate schema.cue
         run: make lintcue
