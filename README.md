@@ -12,9 +12,9 @@ We hope your project appreciates the value the specification provides and makes 
 
 ### Initial Adoption
 
-Projects adopting the specification in a single project repository should be able to get started and produce a useful `security-insights.yml` in about 30 minutes by consulting the [`template-minimum.yml`](template-minimum.yml).
+Projects adopting the specification in a single project repository should be able to get started and produce a useful `security-insights.yml` in about 30 minutes by consulting the [`example-minimum.yml`](examples/example-minimum.yml).
 
-If your project has multiple repositories, you can define a detailed and centralized insights file in one repository and then reuse the `project` definition from that across other files. The consuming insights files must provide a URL in `header.project-si-source` that points to the parent insights file. The URL provided must respond to an unauthenticated GET request and return a valid security insights file using a content-type of "text/plain" or "application/yaml". See [`template-multi-repository-project.yml`](template-multi-repository-project.yml) and [`template-multi-repository-project-reuse.yml`](template-multi-repository-project-reuse.yml) that demonstrate how this use case can be implemented.
+If your project has multiple repositories, you can define a detailed and centralized insights file in one repository and then reuse the `project` definition from that across other files. The consuming insights files must provide a URL in `header.project-si-source` that points to the parent insights file. The URL provided must respond to an unauthenticated GET request and return a valid security insights file using a content-type of "text/plain" or "application/yaml". See [`example-multi-repository-project.yml`](examples/example-multi-repository-project.yml) and [`example-multi-repository-project-reuse.yml`](examples/example-multi-repository-project-reuse.yml) that demonstrate how this use case can be implemented.
 
 Projects should include a `security-insights.yml` file in the root of their repository, or in the appropriate source forge directory such as `.github/` or `.gitlab/`.
 
@@ -22,7 +22,7 @@ To ensure you are adhering to an official version of the specification, please r
 
 ### Plan your project security investments
 
-In reviewing the schema, the examples, and creating a `security-insights.yml` for your project, you probably found many parts of the specification that you would like to be able to add over time. It can be helpful to refer to [`template-full.yml`](template-full.yml) and identify sections for targeted improvement. Consider filing issues in your project's issue tracker for each section so the community understands how you prioritize these investments.
+In reviewing the schema, the examples, and creating a `security-insights.yml` for your project, you probably found many parts of the specification that you would like to be able to add over time. It can be helpful to refer to [`example-full.yml`](examples/example-full.yml) and identify sections for targeted improvement. Consider filing issues in your project's issue tracker for each section so the community understands how you prioritize these investments.
 
 ### Ongoing Maintenance
 
@@ -58,9 +58,9 @@ The specification maintenance occurs in the following places:
 
 Examples are also available to provide further context to the specification details above.
 
-- `template-full.yml`: Contains a template that includes all possible fields
-- `template-minimum.yml`: Contains a template that includes only the required fields
-- `template-multi-repository-project.yml`: Contains an extension of `template-minimum.yml` for the primary repository of a multi-repository project
-- `template-multi-repository-project-reuse.yml`: Contains a template for a secondary repository of a multi-repository project
+- `examples/example-full.yml`: Contains a template that includes all possible fields
+- `examples/example-minimum.yml`: Contains a template that includes only the required fields
+- `examples/example-multi-repository-project.yml`: Contains an extension of `examples/example-minimum.yml` for the primary repository of a multi-repository project
+- `examples/example-multi-repository-project-reuse.yml`: Contains a template for a secondary repository of a multi-repository project
 
 Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights-spec/issues). We ask that you follow the [Security Insights Enhancement Proposal](./docs/GOVERNANCE.md#security-insights-enhancement-proposals) process to explore potential changes to the specification.
