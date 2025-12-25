@@ -254,10 +254,11 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 
 	// Generate heading
 	heading := strings.Repeat("#", headingLevel)
-	buf.WriteString(fmt.Sprintf("%s `%s`\n\n", heading, fieldPath))
+	optionalText := ""
 	if isOptional {
-		buf.WriteString("**Optional Field**\n\n")
+		optionalText = " (optional)"
 	}
+	buf.WriteString(fmt.Sprintf("%s `%s`%s\n\n", heading, fieldPath, optionalText))
 
 	// Handle $ref - resolve and recurse
 	if fieldSchema.Ref != "" {
