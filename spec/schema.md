@@ -2,8 +2,6 @@
 
 SecurityInsights defines a schema that projects can use to report information about their security in a machine-processable way. The data tracked within this specification is intended to fill the gaps between simplified solutions such as SECURITY.md and comprehensive automated solutions such as SBOMs. In that gap lay elements that must be self-reported by projects to allow end-users to make informed security decisions.
 
-## Required vs Optional Fields
-
 Required:
 
 - `header`
@@ -21,8 +19,6 @@ header captures high level metadata about the schema.
 
 - **Type**: [Header]
 
-### Required vs Optional Fields
-
 Required if `header` is present:
 
 - `last-reviewed`
@@ -37,9 +33,7 @@ Optional:
 
 ---
 
-### `header.comment`
-
-**Optional Field**
+### `header.comment` (optional)
 
 Additional information about the schema.
 
@@ -63,9 +57,7 @@ The date when the document or data was last updated.
 
 ---
 
-### `header.project-si-source`
-
-**Optional Field**
+### `header.project-si-source` (optional)
 
 A URL to the security insights file that contains project information for this file to inherit. The URL provided here should respond to an unauthenticated GET request and return a valid security insights file using a content-type of "text/plain" or "application/yaml". This is useful for projects that are part of a larger organization or ecosystem, where much of the security insights data is shared across multiple projects.
 
@@ -89,15 +81,11 @@ The primary reference URL for this schema’s origin or repository.
 
 ---
 
-## `project`
-
-**Optional Field**
+## `project` (optional)
 
 project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details. This field is not required if `header.project-si-source` is supplied.
 
 - **Type**: [Project]
-
-### Required vs Optional Fields
 
 Required if `project` is present:
 
@@ -125,15 +113,11 @@ A list of 1 or more individuals who have administrative access to the project's 
 
 ---
 
-### `project.documentation`
-
-**Optional Field**
+### `project.documentation` (optional)
 
 the project's documentation resources
 
 - **Type**: [ProjectDocumentation]
-
-### Required vs Optional Fields
 
 
 Optional:
@@ -147,9 +131,7 @@ Optional:
 
 ---
 
-#### `project.documentation.code-of-conduct`
-
-**Optional Field**
+#### `project.documentation.code-of-conduct` (optional)
 
 URL to the document outlining contributor and user conduct guidelines.
 
@@ -157,9 +139,7 @@ URL to the document outlining contributor and user conduct guidelines.
 
 ---
 
-#### `project.documentation.detailed-guide`
-
-**Optional Field**
+#### `project.documentation.detailed-guide` (optional)
 
 URL to more extensive or advanced documentation.
 
@@ -167,9 +147,7 @@ URL to more extensive or advanced documentation.
 
 ---
 
-#### `project.documentation.quickstart-guide`
-
-**Optional Field**
+#### `project.documentation.quickstart-guide` (optional)
 
 URL to a concise guide to basic functionality for new users.
 
@@ -177,9 +155,7 @@ URL to a concise guide to basic functionality for new users.
 
 ---
 
-#### `project.documentation.release-process`
-
-**Optional Field**
+#### `project.documentation.release-process` (optional)
 
 URL describing how releases are planned, prepared, and published.
 
@@ -187,9 +163,7 @@ URL describing how releases are planned, prepared, and published.
 
 ---
 
-#### `project.documentation.signature-verification`
-
-**Optional Field**
+#### `project.documentation.signature-verification` (optional)
 
 URL to documentation explaining how to verify digital signatures on assets.
 
@@ -197,9 +171,7 @@ URL to documentation explaining how to verify digital signatures on assets.
 
 ---
 
-#### `project.documentation.support-policy`
-
-**Optional Field**
+#### `project.documentation.support-policy` (optional)
 
 URL to documentation describing how releases are supported. See [Recommendations for publishing End-of-life dates and support timelines](https://endoflife.date/recommendations) for best practices.
 
@@ -207,9 +179,7 @@ URL to documentation describing how releases are supported. See [Recommendations
 
 ---
 
-### `project.funding`
-
-**Optional Field**
+### `project.funding` (optional)
 
 A URL to information about sponsorships, donations, or other funding topics.
 
@@ -217,9 +187,7 @@ A URL to information about sponsorships, donations, or other funding topics.
 
 ---
 
-### `project.homepage`
-
-**Optional Field**
+### `project.homepage` (optional)
 
 A path to the project’s landing page. This may be a project website, a version control system repository, or a project/organization page in the VCS.
 
@@ -244,9 +212,7 @@ A list of 1 or more repositories that are part of this project, including the re
 
 ---
 
-### `project.roadmap`
-
-**Optional Field**
+### `project.roadmap` (optional)
 
 A URL pointing to a roadmap or schedule for planned features and releases.
 
@@ -254,15 +220,11 @@ A URL pointing to a roadmap or schedule for planned features and releases.
 
 ---
 
-### `project.steward`
-
-**Optional Field**
+### `project.steward` (optional)
 
 This field is to communicate the relationship between the project and "a legal person, other than a manufacturer, that has the purpose or objective of systematically providing support on a sustained basis for the development of specific products with digital elements, qualifying as free and open-source software and intended for commercial activities, and that ensures the viability of those products" This definition is drawn from the [European Union Cyber Resilience Act, Article 3](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng#art_3).
 
 - **Type**: [Link]
-
-### Required vs Optional Fields
 
 Required if `project.steward` is present:
 
@@ -293,8 +255,6 @@ An object describing how security vulnerabilities can be reported and how they a
 
 - **Type**: [VulnerabilityReporting]
 
-### Required vs Optional Fields
-
 Required if `project.vulnerability-reporting` is present:
 
 - `bug-bounty-available`
@@ -320,9 +280,7 @@ Specifies whether a bug bounty program is offered.
 
 ---
 
-#### `project.vulnerability-reporting.bug-bounty-program`
-
-**Optional Field**
+#### `project.vulnerability-reporting.bug-bounty-program` (optional)
 
 Path to a page providing details about any bug bounty program.
 
@@ -330,9 +288,7 @@ Path to a page providing details about any bug bounty program.
 
 ---
 
-#### `project.vulnerability-reporting.comment`
-
-**Optional Field**
+#### `project.vulnerability-reporting.comment` (optional)
 
 Additional comments or instructions about vulnerability reporting.
 
@@ -340,15 +296,11 @@ Additional comments or instructions about vulnerability reporting.
 
 ---
 
-#### `project.vulnerability-reporting.contact`
-
-**Optional Field**
+#### `project.vulnerability-reporting.contact` (optional)
 
 Point of contact for reporting vulnerabilities. This may be a single person or a mailgroup.
 
 - **Type**: [Contact]
-
-### Required vs Optional Fields
 
 Required if `project.vulnerability-reporting.contact` is present:
 
@@ -363,9 +315,7 @@ Optional:
 
 ---
 
-##### `project.vulnerability-reporting.contact.affiliation`
-
-**Optional Field**
+##### `project.vulnerability-reporting.contact.affiliation` (optional)
 
 The entity with which the contact is affiliated, such as a school or employer.
 
@@ -373,9 +323,7 @@ The entity with which the contact is affiliated, such as a school or employer.
 
 ---
 
-##### `project.vulnerability-reporting.contact.email`
-
-**Optional Field**
+##### `project.vulnerability-reporting.contact.email` (optional)
 
 A preferred email address to reach the contact.
 
@@ -399,9 +347,7 @@ Indicates whether this admin is the first point of contact for inquiries. Only o
 
 ---
 
-##### `project.vulnerability-reporting.contact.social`
-
-**Optional Field**
+##### `project.vulnerability-reporting.contact.social` (optional)
 
 A social media handle or profile for the contact.
 
@@ -409,9 +355,7 @@ A social media handle or profile for the contact.
 
 ---
 
-#### `project.vulnerability-reporting.in-scope`
-
-**Optional Field**
+#### `project.vulnerability-reporting.in-scope` (optional)
 
 A list of issues or components that are covered by the vulnerability reporting process.
 
@@ -420,9 +364,7 @@ A list of issues or components that are covered by the vulnerability reporting p
 
 ---
 
-#### `project.vulnerability-reporting.out-of-scope`
-
-**Optional Field**
+#### `project.vulnerability-reporting.out-of-scope` (optional)
 
 A list of issues or components not covered by the vulnerability reporting process.
 
@@ -431,9 +373,7 @@ A list of issues or components not covered by the vulnerability reporting proces
 
 ---
 
-#### `project.vulnerability-reporting.pgp-key`
-
-**Optional Field**
+#### `project.vulnerability-reporting.pgp-key` (optional)
 
 The PGP public key for secure communication.
 
@@ -449,9 +389,7 @@ Indicates whether this project currently accepts vulnerability reports.
 
 ---
 
-#### `project.vulnerability-reporting.security-policy`
-
-**Optional Field**
+#### `project.vulnerability-reporting.security-policy` (optional)
 
 Path to a page containing guidelines for security-related disclosures.
 
@@ -459,15 +397,11 @@ Path to a page containing guidelines for security-related disclosures.
 
 ---
 
-## `repository`
-
-**Optional Field**
+## `repository` (optional)
 
 repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture. This field is not required if `header.project-si-source` is supplied. This field is required if the file is intended for use as a parent security insights file with project information to be inherited by multiple repositories via their respective `header.project-si-source`.
 
 - **Type**: [Repository]
-
-### Required vs Optional Fields
 
 Required if `repository` is present:
 
@@ -504,9 +438,7 @@ Indicates whether the repository currently accepts any change requests.
 
 ---
 
-### `repository.bug-fixes-only`
-
-**Optional Field**
+### `repository.bug-fixes-only` (optional)
 
 Specifies whether the repository only accepts bug-fixes and not feature work.
 
@@ -523,15 +455,11 @@ A list of 1 or more core team members for this repository, such as maintainers o
 
 ---
 
-### `repository.documentation`
-
-**Optional Field**
+### `repository.documentation` (optional)
 
 Documentation links for the repository, including links to contributing guides, dependency management policies, governance documents, and review policies.
 
 - **Type**: [RepositoryDocumentation]
-
-### Required vs Optional Fields
 
 
 Optional:
@@ -544,9 +472,7 @@ Optional:
 
 ---
 
-#### `repository.documentation.contributing-guide`
-
-**Optional Field**
+#### `repository.documentation.contributing-guide` (optional)
 
 URL to a document outlining the process for contributing to the repository.
 
@@ -554,9 +480,7 @@ URL to a document outlining the process for contributing to the repository.
 
 ---
 
-#### `repository.documentation.dependency-management-policy`
-
-**Optional Field**
+#### `repository.documentation.dependency-management-policy` (optional)
 
 URL to a document outlining the process for managing dependencies in the repository.
 
@@ -564,9 +488,7 @@ URL to a document outlining the process for managing dependencies in the reposit
 
 ---
 
-#### `repository.documentation.governance`
-
-**Optional Field**
+#### `repository.documentation.governance` (optional)
 
 URL to any governance documents regarding roles, responsibilities, processes, and decision-making.
 
@@ -574,9 +496,7 @@ URL to any governance documents regarding roles, responsibilities, processes, an
 
 ---
 
-#### `repository.documentation.review-policy`
-
-**Optional Field**
+#### `repository.documentation.review-policy` (optional)
 
 URL to a document outlining the process for reviewing changes to the repository.
 
@@ -584,9 +504,7 @@ URL to a document outlining the process for reviewing changes to the repository.
 
 ---
 
-#### `repository.documentation.security-policy`
-
-**Optional Field**
+#### `repository.documentation.security-policy` (optional)
 
 URL with information about the repository's security, including the policy for reporting security vulnerabilities.
 
@@ -599,8 +517,6 @@ URL with information about the repository's security, including the policy for r
 The license information for this repository.
 
 - **Type**: [License]
-
-### Required vs Optional Fields
 
 Required if `repository.license` is present:
 
@@ -625,9 +541,7 @@ A web address where the license can be found.
 
 ---
 
-### `repository.no-third-party-packages`
-
-**Optional Field**
+### `repository.no-third-party-packages` (optional)
 
 Indicates whether the repository universally avoids package dependencies from outside of the project.
 
@@ -635,15 +549,11 @@ Indicates whether the repository universally avoids package dependencies from ou
 
 ---
 
-### `repository.release`
-
-**Optional Field**
+### `repository.release` (optional)
 
 Release describes the release process for the repository.
 
 - **Type**: [ReleaseDetails]
-
-### Required vs Optional Fields
 
 Required if `repository.release` is present:
 
@@ -658,9 +568,7 @@ Optional:
 
 ---
 
-#### `repository.release.attestations`
-
-**Optional Field**
+#### `repository.release.attestations` (optional)
 
 List of attestations for the repository’s releases.
 
@@ -677,9 +585,7 @@ Indicates if the repository uses an automated release pipeline.
 
 ---
 
-#### `repository.release.changelog`
-
-**Optional Field**
+#### `repository.release.changelog` (optional)
 
 A URL to the repository’s release changelog. The URL value should include placeholders such as `{version}` if relevant.
 
@@ -696,15 +602,11 @@ A list of 1 or more links describing where the repository’s releases are distr
 
 ---
 
-#### `repository.release.license`
-
-**Optional Field**
+#### `repository.release.license` (optional)
 
 Describes the license details specifically for releases. This should be used when the release license differs from the repository license.
 
 - **Type**: [License]
-
-### Required vs Optional Fields
 
 Required if `repository.release.license` is present:
 
@@ -735,8 +637,6 @@ An object describing security-related artifacts, champions, and tooling for the 
 
 - **Type**: [SecurityPosture]
 
-### Required vs Optional Fields
-
 Required if `repository.security` is present:
 
 - `assessments`
@@ -751,8 +651,6 @@ Optional:
 #### `repository.security.assessments`
 
 An object describing security assessments for the repository.
-
-### Required vs Optional Fields
 
 Required if `repository.security.assessments` is present:
 
@@ -769,8 +667,6 @@ Optional:
 Results of the contributor team's assessment of software produced by this repository.
 
 - **Type**: [Assessment]
-
-### Required vs Optional Fields
 
 Required if `repository.security.assessments.self` is present:
 
@@ -792,9 +688,7 @@ Notes or commentary about the findings or purpose of the assessment.
 
 ---
 
-###### `repository.security.assessments.self.date`
-
-**Optional Field**
+###### `repository.security.assessments.self.date` (optional)
 
 The date the assessment was published.
 
@@ -802,9 +696,7 @@ The date the assessment was published.
 
 ---
 
-###### `repository.security.assessments.self.evidence`
-
-**Optional Field**
+###### `repository.security.assessments.self.evidence` (optional)
 
 The URL where the assessment report or artifact is located.
 
@@ -812,9 +704,7 @@ The URL where the assessment report or artifact is located.
 
 ---
 
-###### `repository.security.assessments.self.name`
-
-**Optional Field**
+###### `repository.security.assessments.self.name` (optional)
 
 The name or identifier of the assessment artifact.
 
@@ -822,9 +712,7 @@ The name or identifier of the assessment artifact.
 
 ---
 
-##### `repository.security.assessments.third-party`
-
-**Optional Field**
+##### `repository.security.assessments.third-party` (optional)
 
 Results of third-party assessments of software produced by this repository.
 
@@ -833,9 +721,7 @@ Results of third-party assessments of software produced by this repository.
 
 ---
 
-#### `repository.security.champions`
-
-**Optional Field**
+#### `repository.security.champions` (optional)
 
 A list of core team members who advocate for continuous improvement of security practices. These individuals may take responsibility for security reviews, training, interfacing with stakeholders on security topics, or other similar activities.
 
@@ -844,9 +730,7 @@ A list of core team members who advocate for continuous improvement of security 
 
 ---
 
-#### `repository.security.tools`
-
-**Optional Field**
+#### `repository.security.tools` (optional)
 
 A list of objects describing security-related tools used in the repository.
 
