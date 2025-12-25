@@ -22,4 +22,68 @@ cuegen:
 	@echo "  >  vet the generated go types ..."
 	@go vet cue_types_gen.go
 
-PHONY: lintcue lintyml cuegen
+genopenapi:
+	@echo "  >  Converting CUE schema to OpenAPI ..."
+	@cd cmd/cue2openapi && go run . -schema ../../spec/schema.cue -output ../../openapi.yaml
+	@echo "  >  OpenAPI schema generation complete!"
+
+gendocs: genopenapi
+	@echo "  >  Generating markdown from OpenAPI ..."
+	@if ! command -v openapi2markdown >/dev/null 2>&1 && ! python3 -c "import openapi_markdown" 2>/dev/null; then \
+		echo "ERROR: openapi-markdown not found. Install it with:"; \
+		echo "  pip3 install openapi-markdown"; \
+		echo "  Or: pip3 install --user openapi-markdown"; \
+		echo ""; \
+		echo "Alternatively, install openapi-to-md:"; \
+		echo "  pip3 install openapi-to-md"; \
+		exit 1; \
+	fi
+	@if command -v openapi2markdown >/dev/null 2>&1; then \
+		openapi2markdown openapi.yaml spec/; \
+	elif python3 -c "import openapi_markdown" 2>/dev/null; then \
+		python3 -c "from openapi_markdown import convert; import sys; convert('openapi.yaml', 'spec')"; \
+	else \
+		echo "ERROR: Could not find openapi-markdown tool"; \
+		exit 1; \
+	fi
+	@echo "  >  Documentation generation complete!"
+
+genpdf: gendocs
+	@echo "  >  Generating PDF from markdown documentation ..."
+	@if ! command -v pandoc >/dev/null 2>&1; then \
+		echo "ERROR: pandoc not found. Install pandoc to generate PDF."; \
+		echo "  macOS: brew install pandoc"; \
+		echo "  Linux: apt-get install pandoc or yum install pandoc"; \
+		exit 1; \
+	fi
+	@VERSION=$$(grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' spec/header.md 2>/dev/null | head -1 || echo "v2.0.0"); \
+	cd spec && pandoc header.md project.md repository.md aliases.md \
+		--from markdown \
+		--to pdf \
+		--output ../Security-Insights-$$VERSION.pdf \
+		--toc \
+		--toc-depth=3 \
+		--pdf-engine=pdflatex \
+		-V geometry:margin=1in \
+		-V documentclass=article \
+		-V fontsize=11pt \
+		--metadata title="Security Insights Specification" \
+		--metadata author="OpenSSF" \
+		--metadata date="$$(date +%Y-%m-%d)" 2>&1 | grep -v "LaTeX Warning" || \
+		(echo "  >  PDF generation with pdflatex failed. Trying HTML fallback..." && \
+		 pandoc header.md project.md repository.md aliases.md \
+			--from markdown \
+			--to html \
+			--standalone \
+			--toc \
+			--toc-depth=3 \
+			--css=https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css \
+			--metadata title="Security Insights Specification" \
+			--metadata author="OpenSSF" \
+			--metadata date="$$(date +%Y-%m-%d)" \
+			--output ../Security-Insights-$$VERSION.html && \
+		 echo "  >  HTML generated at Security-Insights-$$VERSION.html (convert to PDF manually)" && \
+		 echo "  >  Install LaTeX for better PDF generation: brew install basictex (macOS) or texlive (Linux)")
+	@echo "  >  PDF generation complete!"
+
+PHONY: lintcue lintyml cuegen genopenapi gendocs genpdf

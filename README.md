@@ -53,8 +53,21 @@ As the adoption of Security Insights grows, so does the opportunity to automatic
 
 The specification maintenance occurs in the following places:
 
-- `specification/`: Contains markdown details for all specification values
+- `spec/`: Contains markdown documentation for all specification values (generated from `schema.cue`)
 - `schema.cue`: Contains the CUE schema that can be used to validate files against the specification
+
+### Generating Documentation
+
+Documentation is generated from the CUE schema using a CUE→OpenAPI→Markdown pipeline:
+
+1. **Generate OpenAPI schema**: `make genopenapi` - Converts `schema.cue` to `openapi.yaml`
+2. **Generate Markdown**: `make gendocs` - Converts `openapi.yaml` to markdown files in `spec/`
+3. **Generate PDF**: `make genpdf` - Converts markdown files to PDF (requires pandoc)
+
+**Prerequisites:**
+- Go (for CUE to OpenAPI conversion)
+- Python 3 with `openapi-markdown` package: `pip3 install openapi-markdown`
+- Pandoc (optional, for PDF generation): `brew install pandoc` (macOS) or `apt-get install pandoc` (Linux)
 
 Examples are also available to provide further context to the specification details above.
 
