@@ -113,6 +113,19 @@ import (
 	repository?: #Repository
 }
 
+// Constraints on #SecurityInsights: either project is required (when project-si-source is not provided), or project-si-source is provided (making project optional).
+#SecurityInsights: {
+	header: {
+		"project-si-source"?: null
+	}
+	project: #Project
+} | {
+	header: {
+		"project-si-source": #URL
+	}
+	project?: #Project
+}
+
 // The Header object captures high-level metadata about the schema.
 #Header: {
 
