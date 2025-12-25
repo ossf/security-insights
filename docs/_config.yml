@@ -3,7 +3,7 @@ author:
   name: Security Insights Maintainers
   email: openssf-sig-security-insights+subscribe@lists.openssf.org
 logo: /assets/logo.svg
-url: "https://insights.openssf.org"
+url: "https://security-insights.openssf.org"
 description: > 
   Security Insights provides a mechanism for projects to report information about 
   their security in a machine-processable way. The data tracked within this 
