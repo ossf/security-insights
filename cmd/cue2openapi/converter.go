@@ -120,8 +120,49 @@ func parseDefinitionField(field *ast.Field, spec *OpenAPISpec) {
 		spec.Components.Schemas[typeName] = schema
 	} else {
 		// Handle type aliases (like #URL, #Email with patterns)
-		schema := convertTypeAlias(field.Value, spec, description)
-		spec.Components.Schemas[typeName] = schema
+		// Check if it's a UnaryExpr (CUE parses =~"pattern" as UnaryExpr with MAT op)
+		if ue, ok := field.Value.(*ast.UnaryExpr); ok {
+			// Check if it's a regex match operator
+			if ue.Op == token.MAT || ue.Op == token.NMAT {
+				// Extract the pattern from the BasicLit
+				if lit, ok := ue.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+					pattern := strings.Trim(lit.Value, "\"")
+					spec.Components.Schemas[typeName] = &SchemaInfo{
+						Type:        "string",
+						Description: description,
+						Pattern:     pattern,
+					}
+					return
+				}
+			}
+		}
+		// Also check if it's directly a BinaryExpr
+		if be, ok := field.Value.(*ast.BinaryExpr); ok {
+			if be.Op == token.MAT || be.Op == token.NMAT {
+				var pattern string
+				if lit, ok := be.Y.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+					pattern = strings.Trim(lit.Value, "\"")
+				} else if lit, ok := be.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+					pattern = strings.Trim(lit.Value, "\"")
+				}
+				if pattern != "" {
+					spec.Components.Schemas[typeName] = &SchemaInfo{
+						Type:        "string",
+						Description: description,
+						Pattern:     pattern,
+					}
+					return
+				}
+			}
+		}
+		// Use convertExprToSchema for other cases
+		schema := convertExprToSchema(field.Value, spec, description)
+		if schemaInfo, ok := schema.(*SchemaInfo); ok {
+			spec.Components.Schemas[typeName] = schemaInfo
+		} else {
+			// Fallback: create a basic string schema
+			spec.Components.Schemas[typeName] = &SchemaInfo{Type: "string", Description: description}
+		}
 	}
 }
 
@@ -222,8 +263,20 @@ func convertIdentToSchema(ident *ast.Ident, spec *OpenAPISpec, description strin
 
 func convertBinaryExprToSchema(expr *ast.BinaryExpr, spec *OpenAPISpec, description string) interface{} {
 	// Handle patterns like =~"^pattern$"
+	// In CUE, =~ is token.MAT (match) and !~ is token.NMAT (not match)
+	// The pattern is typically on the right side (Y) for =~"pattern"
 	if expr.Op == token.MAT || expr.Op == token.NMAT {
+		// Check right side first (most common case: =~"pattern")
 		if lit, ok := expr.Y.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+			pattern := strings.Trim(lit.Value, "\"")
+			return &SchemaInfo{
+				Type:        "string",
+				Description: description,
+				Pattern:     pattern,
+			}
+		}
+		// Check left side (less common: "pattern"=~)
+		if lit, ok := expr.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
 			pattern := strings.Trim(lit.Value, "\"")
 			return &SchemaInfo{
 				Type:        "string",
@@ -276,8 +329,19 @@ func convertTypeAlias(expr ast.Expr, spec *OpenAPISpec, description string) *Sch
 	switch x := expr.(type) {
 	case *ast.BinaryExpr:
 		// Handle pattern validators like #URL: =~"^https?://..."
-		if x.Op == token.MAT {
+		// In CUE, =~ is a match operator, pattern is on the right (Y)
+		if x.Op == token.MAT || x.Op == token.NMAT {
+			// Check if pattern is on the right side
 			if lit, ok := x.Y.(*ast.BasicLit); ok && lit.Kind == token.STRING {
+				pattern := strings.Trim(lit.Value, "\"")
+				return &SchemaInfo{
+					Type:        "string",
+					Description: description,
+					Pattern:     pattern,
+				}
+			}
+			// Also check left side in case AST structure is reversed
+			if lit, ok := x.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
 				pattern := strings.Trim(lit.Value, "\"")
 				return &SchemaInfo{
 					Type:        "string",

@@ -42,7 +42,7 @@ func convertCUEToOpenAPI(schemaPath, outputPath string) error {
 		return fmt.Errorf("failed to load CUE schema: %v", insts[0].Err)
 	}
 
-	// Parse the AST to extract structure
+	// Use runtime-based conversion
 	file := insts[0].Files[0]
 	openapiSpec := parseCUEToOpenAPI(file)
 

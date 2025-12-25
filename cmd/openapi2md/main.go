@@ -117,9 +117,8 @@ func convertOpenAPIToMarkdown(inputFile, outputDir string) error {
 			}
 			buf.WriteString(fmt.Sprintf("- **Type**: `%s`\n", schema.Type))
 			if schema.Pattern != "" {
-				buf.WriteString(fmt.Sprintf("- **Pattern**: `%s`\n", schema.Pattern))
-			}
-			if schema.Format != "" {
+				buf.WriteString(fmt.Sprintf("- **Value**: `%s`\n", schema.Pattern))
+			} else if schema.Format != "" {
 				buf.WriteString(fmt.Sprintf("- **Format**: `%s`\n", schema.Format))
 			}
 			buf.WriteString("\n---\n\n")
