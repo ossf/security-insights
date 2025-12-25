@@ -51,6 +51,7 @@ To ensure you are adhering to an official version of the specification, please r
 As the adoption of Security Insights grows, so does the opportunity to automatically ingest it:
 
 - **[CLOMonitor](https://clomonitor.io/)** - The Linux Foundation's tool that parses Security Insights files to determine whether projects have reported on select security factors
+- **[LFX Insights](https://insights.lfx.linuxfoundation.org/)** - The Linux Foundation's tool that reads a project's Security Insights file to evaluate security hygiene against the OSPS Baseline assessment requirements
 - **[si-tooling](https://github.com/ossf/si-tooling)** - Community-maintained tools for reading, validating and manipulating Security Insights data
 
 ## Maintenance
