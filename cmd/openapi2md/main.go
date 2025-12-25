@@ -311,7 +311,8 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 		// Show required vs optional for the referenced type
 		if len(refSchema.Required) > 0 || refSchema.Properties != nil {
 			buf.WriteString("\n")
-			buf.WriteString("### Required vs Optional Fields\n\n")
+			subHeading := strings.Repeat("#", headingLevel+1)
+			buf.WriteString(fmt.Sprintf("%s Required vs Optional Fields\n\n", subHeading))
 			if len(refSchema.Required) > 0 {
 				buf.WriteString(fmt.Sprintf("Required if `%s` is present:\n\n", fieldPath))
 				required := make([]string, len(refSchema.Required))
@@ -380,7 +381,8 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 
 		// Show required vs optional for the inline object
 		if len(fieldSchema.Required) > 0 || fieldSchema.Properties != nil {
-			buf.WriteString("### Required vs Optional Fields\n\n")
+			subHeading := strings.Repeat("#", headingLevel+1)
+			buf.WriteString(fmt.Sprintf("%s Required vs Optional Fields\n\n", subHeading))
 			if len(fieldSchema.Required) > 0 {
 				buf.WriteString(fmt.Sprintf("Required if `%s` is present:\n\n", fieldPath))
 				required := make([]string, len(fieldSchema.Required))
