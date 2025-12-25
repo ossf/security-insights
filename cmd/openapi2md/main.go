@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -136,13 +137,7 @@ func convertOpenAPIToMarkdown(inputFile, outputDir string) error {
 }
 
 func sortStrings(s []string) {
-	for i := 0; i < len(s)-1; i++ {
-		for j := i + 1; j < len(s); j++ {
-			if s[i] > s[j] {
-				s[i], s[j] = s[j], s[i]
-			}
-		}
-	}
+	sort.Strings(s)
 }
 
 func isAlias(schema Schema) bool {
@@ -187,7 +182,10 @@ func generateSecurityInsightsSection(schema Schema, spec OpenAPISpec, version st
 		buf.WriteString("## Required vs Optional Fields\n\n")
 		if len(schema.Required) > 0 {
 			buf.WriteString("Required:\n\n")
-			for _, req := range schema.Required {
+			required := make([]string, len(schema.Required))
+			copy(required, schema.Required)
+			sort.Strings(required)
+			for _, req := range required {
 				buf.WriteString(fmt.Sprintf("- `%s`\n", req))
 			}
 		}
@@ -205,6 +203,7 @@ func generateSecurityInsightsSection(schema Schema, spec OpenAPISpec, version st
 					optional = append(optional, propName)
 				}
 			}
+			sort.Strings(optional)
 			if len(optional) > 0 {
 				buf.WriteString("\nOptional:\n\n")
 				for _, opt := range optional {
@@ -217,7 +216,15 @@ func generateSecurityInsightsSection(schema Schema, spec OpenAPISpec, version st
 
 	// Generate nested sections for each field
 	if schema.Properties != nil {
-		for propName, propData := range schema.Properties {
+		// Sort property names for deterministic output
+		propNames := make([]string, 0, len(schema.Properties))
+		for propName := range schema.Properties {
+			propNames = append(propNames, propName)
+		}
+		sort.Strings(propNames)
+
+		for _, propName := range propNames {
+			propData := schema.Properties[propName]
 			propBytes, _ := yaml.Marshal(propData)
 			var prop Schema
 			yaml.Unmarshal(propBytes, &prop)
@@ -307,7 +314,10 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 			buf.WriteString("### Required vs Optional Fields\n\n")
 			if len(refSchema.Required) > 0 {
 				buf.WriteString(fmt.Sprintf("Required if `%s` is present:\n\n", fieldPath))
-				for _, req := range refSchema.Required {
+				required := make([]string, len(refSchema.Required))
+				copy(required, refSchema.Required)
+				sort.Strings(required)
+				for _, req := range required {
 					buf.WriteString(fmt.Sprintf("- `%s`\n", req))
 				}
 			}
@@ -325,6 +335,7 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 						optional = append(optional, propName)
 					}
 				}
+				sort.Strings(optional)
 				if len(optional) > 0 {
 					buf.WriteString("\nOptional:\n\n")
 					for _, opt := range optional {
@@ -337,7 +348,15 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 
 		// Recursively generate nested fields
 		if refSchema.Properties != nil {
-			for propName, propData := range refSchema.Properties {
+			// Sort property names for deterministic output
+			propNames := make([]string, 0, len(refSchema.Properties))
+			for propName := range refSchema.Properties {
+				propNames = append(propNames, propName)
+			}
+			sort.Strings(propNames)
+
+			for _, propName := range propNames {
+				propData := refSchema.Properties[propName]
 				propBytes, _ := yaml.Marshal(propData)
 				var prop Schema
 				yaml.Unmarshal(propBytes, &prop)
@@ -364,7 +383,10 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 			buf.WriteString("### Required vs Optional Fields\n\n")
 			if len(fieldSchema.Required) > 0 {
 				buf.WriteString(fmt.Sprintf("Required if `%s` is present:\n\n", fieldPath))
-				for _, req := range fieldSchema.Required {
+				required := make([]string, len(fieldSchema.Required))
+				copy(required, fieldSchema.Required)
+				sort.Strings(required)
+				for _, req := range required {
 					buf.WriteString(fmt.Sprintf("- `%s`\n", req))
 				}
 			}
@@ -382,6 +404,7 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 						optional = append(optional, propName)
 					}
 				}
+				sort.Strings(optional)
 				if len(optional) > 0 {
 					buf.WriteString("\nOptional:\n\n")
 					for _, opt := range optional {
@@ -393,7 +416,15 @@ func generateFieldSection(fieldName string, fieldSchema Schema, spec OpenAPISpec
 		}
 
 		// Recursively generate nested fields
-		for propName, propData := range fieldSchema.Properties {
+		// Sort property names for deterministic output
+		propNames := make([]string, 0, len(fieldSchema.Properties))
+		for propName := range fieldSchema.Properties {
+			propNames = append(propNames, propName)
+		}
+		sort.Strings(propNames)
+
+		for _, propName := range propNames {
+			propData := fieldSchema.Properties[propName]
 			propBytes, _ := yaml.Marshal(propData)
 			var prop Schema
 			yaml.Unmarshal(propBytes, &prop)
@@ -458,7 +489,10 @@ func generateSchemaMarkdown(name string, schema Schema, spec OpenAPISpec, versio
 		buf.WriteString("## Required vs Optional Fields\n\n")
 		if len(schema.Required) > 0 {
 			buf.WriteString(fmt.Sprintf("Required if `%s` is present:\n\n", strings.ToLower(name)))
-			for _, req := range schema.Required {
+			required := make([]string, len(schema.Required))
+			copy(required, schema.Required)
+			sort.Strings(required)
+			for _, req := range required {
 				buf.WriteString(fmt.Sprintf("- `%s`\n", req))
 			}
 		}
@@ -476,6 +510,7 @@ func generateSchemaMarkdown(name string, schema Schema, spec OpenAPISpec, versio
 					optional = append(optional, propName)
 				}
 			}
+			sort.Strings(optional)
 			if len(optional) > 0 {
 				buf.WriteString("\nOptional:\n\n")
 				for _, opt := range optional {
@@ -488,7 +523,15 @@ func generateSchemaMarkdown(name string, schema Schema, spec OpenAPISpec, versio
 
 	// Properties
 	if schema.Properties != nil {
-		for propName, propData := range schema.Properties {
+		// Sort property names for deterministic output
+		propNames := make([]string, 0, len(schema.Properties))
+		for propName := range schema.Properties {
+			propNames = append(propNames, propName)
+		}
+		sort.Strings(propNames)
+
+		for _, propName := range propNames {
+			propData := schema.Properties[propName]
 			propBytes, _ := yaml.Marshal(propData)
 			var prop Schema
 			yaml.Unmarshal(propBytes, &prop)
