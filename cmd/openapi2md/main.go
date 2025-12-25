@@ -103,7 +103,7 @@ func convertOpenAPIToMarkdown(inputFile, outputDir string) error {
 
 	// Generate aliases section
 	if len(aliasTypes) > 0 {
-		buf.WriteString(fmt.Sprintf("\n## Aliases _(%s)_\n\n", spec.Info.Version))
+		buf.WriteString("\n## Aliases\n\n")
 		buf.WriteString("The following aliases are used throughout the schema for consistency.\n\n")
 
 		for _, name := range aliasTypes {
