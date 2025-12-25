@@ -15,7 +15,9 @@ Optional:
 
 ---
 
-## `repository (optional)`
+## `repository`
+
+**Optional Field**
 
 repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture. This field is not required if `header.project-si-source` is supplied. This field is required if the file is intended for use as a parent security insights file with project information to be inherited by multiple repositories via their respective `header.project-si-source`.
 
@@ -35,35 +37,10 @@ Required if `repository` is present:
 
 Optional:
 
-- `bug-fixes-only`
-- `no-third-party-packages`
 - `documentation`
 - `release`
-
----
-
-### `repository.bug-fixes-only (optional)`
-
-Specifies whether the repository only accepts bug-fixes and not feature work.
-
-- **Type**: `boolean`
-
----
-
-### `repository.core-team`
-
-A list of 1 or more core team members for this repository, such as maintainers or approvers.
-
-- **Type**: `array`
-- **Items**: [Contact]
-
----
-
-### `repository.no-third-party-packages (optional)`
-
-Indicates whether the repository universally avoids package dependencies from outside of the project.
-
-- **Type**: `boolean`
+- `no-third-party-packages`
+- `bug-fixes-only`
 
 ---
 
@@ -75,7 +52,9 @@ Indicates whether the repository currently accepts any change requests.
 
 ---
 
-### `repository.documentation (optional)`
+### `repository.documentation`
+
+**Optional Field**
 
 Documentation links for the repository, including links to contributing guides, dependency management policies, governance documents, and review policies.
 
@@ -86,39 +65,17 @@ Documentation links for the repository, including links to contributing guides, 
 
 Optional:
 
-- `dependency-management-policy`
-- `governance`
 - `review-policy`
 - `security-policy`
 - `contributing-guide`
+- `dependency-management-policy`
+- `governance`
 
 ---
 
-#### `repository.documentation.review-policy (optional)`
+#### `repository.documentation.dependency-management-policy`
 
-URL to a document outlining the process for reviewing changes to the repository.
-
-- **Type**: [URL]
-
----
-
-#### `repository.documentation.security-policy (optional)`
-
-URL with information about the repository's security, including the policy for reporting security vulnerabilities.
-
-- **Type**: [URL]
-
----
-
-#### `repository.documentation.contributing-guide (optional)`
-
-URL to a document outlining the process for contributing to the repository.
-
-- **Type**: [URL]
-
----
-
-#### `repository.documentation.dependency-management-policy (optional)`
+**Optional Field**
 
 URL to a document outlining the process for managing dependencies in the repository.
 
@@ -126,7 +83,9 @@ URL to a document outlining the process for managing dependencies in the reposit
 
 ---
 
-#### `repository.documentation.governance (optional)`
+#### `repository.documentation.governance`
+
+**Optional Field**
 
 URL to any governance documents regarding roles, responsibilities, processes, and decision-making.
 
@@ -134,38 +93,39 @@ URL to any governance documents regarding roles, responsibilities, processes, an
 
 ---
 
-### `repository.license`
+#### `repository.documentation.review-policy`
 
-The license information for this repository.
+**Optional Field**
 
-- **Type**: [License]
-
-### Required vs Optional Fields
-
-Required if `repository.license` is present:
-
-- `url`
-- `expression`
-
----
-
-#### `repository.license.expression`
-
-The SPDX license expression for the license.
-
-- **Type**: `string`
-
----
-
-#### `repository.license.url`
-
-A web address where the license can be found.
+URL to a document outlining the process for reviewing changes to the repository.
 
 - **Type**: [URL]
 
 ---
 
-### `repository.release (optional)`
+#### `repository.documentation.security-policy`
+
+**Optional Field**
+
+URL with information about the repository's security, including the policy for reporting security vulnerabilities.
+
+- **Type**: [URL]
+
+---
+
+#### `repository.documentation.contributing-guide`
+
+**Optional Field**
+
+URL to a document outlining the process for contributing to the repository.
+
+- **Type**: [URL]
+
+---
+
+### `repository.release`
+
+**Optional Field**
 
 Release describes the release process for the repository.
 
@@ -186,7 +146,28 @@ Optional:
 
 ---
 
-#### `repository.release.changelog (optional)`
+#### `repository.release.attestations`
+
+**Optional Field**
+
+List of attestations for the repository’s releases.
+
+- **Type**: `array`
+- **Items**: [Attestation]
+
+---
+
+#### `repository.release.automated-pipeline`
+
+Indicates if the repository uses an automated release pipeline.
+
+- **Type**: `boolean`
+
+---
+
+#### `repository.release.changelog`
+
+**Optional Field**
 
 A URL to the repository’s release changelog. The URL value should include placeholders such as `{version}` if relevant.
 
@@ -203,7 +184,9 @@ A list of 1 or more links describing where the repository’s releases are distr
 
 ---
 
-#### `repository.release.license (optional)`
+#### `repository.release.license`
+
+**Optional Field**
 
 Describes the license details specifically for releases. This should be used when the release license differs from the repository license.
 
@@ -231,23 +214,6 @@ The SPDX license expression for the license.
 A web address where the license can be found.
 
 - **Type**: [URL]
-
----
-
-#### `repository.release.attestations (optional)`
-
-List of attestations for the repository’s releases.
-
-- **Type**: `array`
-- **Items**: [Attestation]
-
----
-
-#### `repository.release.automated-pipeline`
-
-Indicates if the repository uses an automated release pipeline.
-
-- **Type**: `boolean`
 
 ---
 
@@ -300,13 +266,15 @@ Required if `repository.security.assessments.self` is present:
 
 Optional:
 
-- `name`
 - `date`
 - `evidence`
+- `name`
 
 ---
 
-###### `repository.security.assessments.self.evidence (optional)`
+###### `repository.security.assessments.self.evidence`
+
+**Optional Field**
 
 The URL where the assessment report or artifact is located.
 
@@ -314,7 +282,9 @@ The URL where the assessment report or artifact is located.
 
 ---
 
-###### `repository.security.assessments.self.name (optional)`
+###### `repository.security.assessments.self.name`
+
+**Optional Field**
 
 The name or identifier of the assessment artifact.
 
@@ -330,7 +300,9 @@ Notes or commentary about the findings or purpose of the assessment.
 
 ---
 
-###### `repository.security.assessments.self.date (optional)`
+###### `repository.security.assessments.self.date`
+
+**Optional Field**
 
 The date the assessment was published.
 
@@ -338,7 +310,9 @@ The date the assessment was published.
 
 ---
 
-##### `repository.security.assessments.third-party (optional)`
+##### `repository.security.assessments.third-party`
+
+**Optional Field**
 
 Results of third-party assessments of software produced by this repository.
 
@@ -347,7 +321,9 @@ Results of third-party assessments of software produced by this repository.
 
 ---
 
-#### `repository.security.champions (optional)`
+#### `repository.security.champions`
+
+**Optional Field**
 
 A list of core team members who advocate for continuous improvement of security practices. These individuals may take responsibility for security reviews, training, interfacing with stakeholders on security topics, or other similar activities.
 
@@ -356,20 +332,14 @@ A list of core team members who advocate for continuous improvement of security 
 
 ---
 
-#### `repository.security.tools (optional)`
+#### `repository.security.tools`
+
+**Optional Field**
 
 A list of objects describing security-related tools used in the repository.
 
 - **Type**: `array`
 - **Items**: [SecurityTool]
-
----
-
-### `repository.status`
-
-Indicates the repository’s current [Repo Status](https://repostatus.org).
-
-- **Type**: `string`
 
 ---
 
@@ -381,9 +351,77 @@ The main URL for this repository.
 
 ---
 
+### `repository.status`
+
+Indicates the repository’s current [Repo Status](https://repostatus.org).
+
+- **Type**: `string`
+
+---
+
 ### `repository.accepts-automated-change-request`
 
 Indicates whether the repository accepts automated or machine-generated change requests.
+
+- **Type**: `boolean`
+
+---
+
+### `repository.bug-fixes-only`
+
+**Optional Field**
+
+Specifies whether the repository only accepts bug-fixes and not feature work.
+
+- **Type**: `boolean`
+
+---
+
+### `repository.core-team`
+
+A list of 1 or more core team members for this repository, such as maintainers or approvers.
+
+- **Type**: `array`
+- **Items**: [Contact]
+
+---
+
+### `repository.license`
+
+The license information for this repository.
+
+- **Type**: [License]
+
+### Required vs Optional Fields
+
+Required if `repository.license` is present:
+
+- `url`
+- `expression`
+
+---
+
+#### `repository.license.url`
+
+A web address where the license can be found.
+
+- **Type**: [URL]
+
+---
+
+#### `repository.license.expression`
+
+The SPDX license expression for the license.
+
+- **Type**: `string`
+
+---
+
+### `repository.no-third-party-packages`
+
+**Optional Field**
+
+Indicates whether the repository universally avoids package dependencies from outside of the project.
 
 - **Type**: `boolean`
 
@@ -406,36 +444,14 @@ Required if `header` is present:
 
 Optional:
 
-- `project-si-source`
 - `comment`
+- `project-si-source`
 
 ---
 
-### `header.comment (optional)`
+### `header.project-si-source`
 
-Additional information about the schema.
-
-- **Type**: `string`
-
----
-
-### `header.last-reviewed`
-
-The date when the document or data was last reviewed.
-
-- **Type**: [Date]
-
----
-
-### `header.last-updated`
-
-The date when the document or data was last updated.
-
-- **Type**: [Date]
-
----
-
-### `header.project-si-source (optional)`
+**Optional Field**
 
 A URL to the security insights file that contains project information for this file to inherit. The URL provided here should respond to an unauthenticated GET request and return a valid security insights file using a content-type of "text/plain" or "application/yaml". This is useful for projects that are part of a larger organization or ecosystem, where much of the security insights data is shared across multiple projects.
 
@@ -459,7 +475,35 @@ The primary reference URL for this schema’s origin or repository.
 
 ---
 
-## `project (optional)`
+### `header.comment`
+
+**Optional Field**
+
+Additional information about the schema.
+
+- **Type**: `string`
+
+---
+
+### `header.last-reviewed`
+
+The date when the document or data was last reviewed.
+
+- **Type**: [Date]
+
+---
+
+### `header.last-updated`
+
+The date when the document or data was last updated.
+
+- **Type**: [Date]
+
+---
+
+## `project`
+
+**Optional Field**
 
 project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details. This field is not required if `header.project-si-source` is supplied.
 
@@ -476,11 +520,11 @@ Required if `project` is present:
 
 Optional:
 
-- `steward`
 - `documentation`
+- `funding`
+- `steward`
 - `homepage`
 - `roadmap`
-- `funding`
 
 ---
 
@@ -493,7 +537,9 @@ A list of 1 or more individuals who have administrative access to the project's 
 
 ---
 
-### `project.documentation (optional)`
+### `project.documentation`
+
+**Optional Field**
 
 the project's documentation resources
 
@@ -504,16 +550,18 @@ the project's documentation resources
 
 Optional:
 
+- `signature-verification`
 - `support-policy`
 - `code-of-conduct`
 - `detailed-guide`
 - `quickstart-guide`
 - `release-process`
-- `signature-verification`
 
 ---
 
-#### `project.documentation.support-policy (optional)`
+#### `project.documentation.support-policy`
+
+**Optional Field**
 
 URL to documentation describing how releases are supported. See [Recommendations for publishing End-of-life dates and support timelines](https://endoflife.date/recommendations) for best practices.
 
@@ -521,7 +569,9 @@ URL to documentation describing how releases are supported. See [Recommendations
 
 ---
 
-#### `project.documentation.code-of-conduct (optional)`
+#### `project.documentation.code-of-conduct`
+
+**Optional Field**
 
 URL to the document outlining contributor and user conduct guidelines.
 
@@ -529,7 +579,9 @@ URL to the document outlining contributor and user conduct guidelines.
 
 ---
 
-#### `project.documentation.detailed-guide (optional)`
+#### `project.documentation.detailed-guide`
+
+**Optional Field**
 
 URL to more extensive or advanced documentation.
 
@@ -537,7 +589,9 @@ URL to more extensive or advanced documentation.
 
 ---
 
-#### `project.documentation.quickstart-guide (optional)`
+#### `project.documentation.quickstart-guide`
+
+**Optional Field**
 
 URL to a concise guide to basic functionality for new users.
 
@@ -545,7 +599,9 @@ URL to a concise guide to basic functionality for new users.
 
 ---
 
-#### `project.documentation.release-process (optional)`
+#### `project.documentation.release-process`
+
+**Optional Field**
 
 URL describing how releases are planned, prepared, and published.
 
@@ -553,7 +609,9 @@ URL describing how releases are planned, prepared, and published.
 
 ---
 
-#### `project.documentation.signature-verification (optional)`
+#### `project.documentation.signature-verification`
+
+**Optional Field**
 
 URL to documentation explaining how to verify digital signatures on assets.
 
@@ -561,15 +619,19 @@ URL to documentation explaining how to verify digital signatures on assets.
 
 ---
 
-### `project.homepage (optional)`
+### `project.funding`
 
-A path to the project’s landing page. This may be a project website, a version control system repository, or a project/organization page in the VCS.
+**Optional Field**
+
+A URL to information about sponsorships, donations, or other funding topics.
 
 - **Type**: [URL]
 
 ---
 
-### `project.steward (optional)`
+### `project.steward`
+
+**Optional Field**
 
 This field is to communicate the relationship between the project and "a legal person, other than a manufacturer, that has the purpose or objective of systematically providing support on a sustained basis for the development of specific products with digital elements, qualifying as free and open-source software and intended for commercial activities, and that ensures the viability of those products" This definition is drawn from the [European Union Cyber Resilience Act, Article 3](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng#art_3).
 
@@ -600,9 +662,11 @@ A link to a resource, not restricted to http/s.
 
 ---
 
-### `project.funding (optional)`
+### `project.homepage`
 
-A URL to information about sponsorships, donations, or other funding topics.
+**Optional Field**
+
+A path to the project’s landing page. This may be a project website, a version control system repository, or a project/organization page in the VCS.
 
 - **Type**: [URL]
 
@@ -625,7 +689,9 @@ A list of 1 or more repositories that are part of this project, including the re
 
 ---
 
-### `project.roadmap (optional)`
+### `project.roadmap`
+
+**Optional Field**
 
 A URL pointing to a roadmap or schedule for planned features and releases.
 
@@ -648,17 +714,19 @@ Required if `project.vulnerability-reporting` is present:
 
 Optional:
 
-- `bug-bounty-program`
-- `contact`
-- `out-of-scope`
-- `pgp-key`
 - `security-policy`
+- `pgp-key`
+- `bug-bounty-program`
 - `comment`
+- `contact`
 - `in-scope`
+- `out-of-scope`
 
 ---
 
-#### `project.vulnerability-reporting.contact (optional)`
+#### `project.vulnerability-reporting.contact`
+
+**Optional Field**
 
 Point of contact for reporting vulnerabilities. This may be a single person or a mailgroup.
 
@@ -673,29 +741,15 @@ Required if `project.vulnerability-reporting.contact` is present:
 
 Optional:
 
+- `social`
 - `affiliation`
 - `email`
-- `social`
 
 ---
 
-##### `project.vulnerability-reporting.contact.primary`
+##### `project.vulnerability-reporting.contact.affiliation`
 
-Indicates whether this admin is the first point of contact for inquiries. Only one entry should be marked as primary.
-
-- **Type**: `boolean`
-
----
-
-##### `project.vulnerability-reporting.contact.social (optional)`
-
-A social media handle or profile for the contact.
-
-- **Type**: `string`
-
----
-
-##### `project.vulnerability-reporting.contact.affiliation (optional)`
+**Optional Field**
 
 The entity with which the contact is affiliated, such as a school or employer.
 
@@ -703,7 +757,9 @@ The entity with which the contact is affiliated, such as a school or employer.
 
 ---
 
-##### `project.vulnerability-reporting.contact.email (optional)`
+##### `project.vulnerability-reporting.contact.email`
+
+**Optional Field**
 
 A preferred email address to reach the contact.
 
@@ -719,32 +775,27 @@ The contact person's name.
 
 ---
 
-#### `project.vulnerability-reporting.out-of-scope (optional)`
+##### `project.vulnerability-reporting.contact.primary`
 
-A list of issues or components not covered by the vulnerability reporting process.
+Indicates whether this admin is the first point of contact for inquiries. Only one entry should be marked as primary.
 
-- **Type**: `array`
-- **Items**: `string`
-
----
-
-#### `project.vulnerability-reporting.bug-bounty-program (optional)`
-
-Path to a page providing details about any bug bounty program.
-
-- **Type**: [URL]
+- **Type**: `boolean`
 
 ---
 
-#### `project.vulnerability-reporting.comment (optional)`
+##### `project.vulnerability-reporting.contact.social`
 
-Additional comments or instructions about vulnerability reporting.
+**Optional Field**
+
+A social media handle or profile for the contact.
 
 - **Type**: `string`
 
 ---
 
-#### `project.vulnerability-reporting.in-scope (optional)`
+#### `project.vulnerability-reporting.in-scope`
+
+**Optional Field**
 
 A list of issues or components that are covered by the vulnerability reporting process.
 
@@ -753,7 +804,48 @@ A list of issues or components that are covered by the vulnerability reporting p
 
 ---
 
-#### `project.vulnerability-reporting.pgp-key (optional)`
+#### `project.vulnerability-reporting.out-of-scope`
+
+**Optional Field**
+
+A list of issues or components not covered by the vulnerability reporting process.
+
+- **Type**: `array`
+- **Items**: `string`
+
+---
+
+#### `project.vulnerability-reporting.bug-bounty-available`
+
+Specifies whether a bug bounty program is offered.
+
+- **Type**: `boolean`
+
+---
+
+#### `project.vulnerability-reporting.bug-bounty-program`
+
+**Optional Field**
+
+Path to a page providing details about any bug bounty program.
+
+- **Type**: [URL]
+
+---
+
+#### `project.vulnerability-reporting.comment`
+
+**Optional Field**
+
+Additional comments or instructions about vulnerability reporting.
+
+- **Type**: `string`
+
+---
+
+#### `project.vulnerability-reporting.pgp-key`
+
+**Optional Field**
 
 The PGP public key for secure communication.
 
@@ -769,19 +861,13 @@ Indicates whether this project currently accepts vulnerability reports.
 
 ---
 
-#### `project.vulnerability-reporting.security-policy (optional)`
+#### `project.vulnerability-reporting.security-policy`
+
+**Optional Field**
 
 Path to a page containing guidelines for security-related disclosures.
 
 - **Type**: [URL]
-
----
-
-#### `project.vulnerability-reporting.bug-bounty-available`
-
-Specifies whether a bug bounty program is offered.
-
-- **Type**: `boolean`
 
 ---
 
