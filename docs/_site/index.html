@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Home | Security Insights Specification</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Home" />
+<meta name="author" content="Security Insights Maintainers" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Security Insights provides a mechanism for projects to report information about their security in a machine-processable way. The data tracked within this specification fills the gaps between simplified solutions such as SECURITY.md and comprehensive automated solutions such as SBOMs." />
+<meta property="og:description" content="Security Insights provides a mechanism for projects to report information about their security in a machine-processable way. The data tracked within this specification fills the gaps between simplified solutions such as SECURITY.md and comprehensive automated solutions such as SBOMs." />
+<link rel="canonical" href="http://0.0.0.0:4000/" />
+<meta property="og:url" content="http://0.0.0.0:4000/" />
+<meta property="og:site_name" content="Security Insights Specification" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Home" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","author":{"@type":"Person","name":"Security Insights Maintainers"},"description":"Security Insights provides a mechanism for projects to report information about their security in a machine-processable way. The data tracked within this specification fills the gaps between simplified solutions such as SECURITY.md and comprehensive automated solutions such as SBOMs.","headline":"Home","name":"Security Insights Specification","publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"http://0.0.0.0:4000/assets/logo.svg"},"name":"Security Insights Maintainers"},"url":"http://0.0.0.0:4000/"}</script>
+<!-- End Jekyll SEO tag -->
+
+
+    <link rel="stylesheet" href="/assets/css/style.css">
+  </head>
+  <body><header class="site-header">
+    <div class="wrapper header-wrapper">
+      <a class="site-logo" href="https://openssf.org">
+        <img src="/assets/logo.svg" alt="OpenSSF" height="85">
+      </a>
+      <a class="site-title" rel="author" href="/">Security Insights Specification</a>
+    </div>
+    <div class="wrapper">
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon"></span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/">About</a><a class="page-link" href="/schema.html">Schema</a></div>
+      </nav>
+    </div>
+</header>
+
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <h1 id="security-insights-specification">Security Insights Specification</h1>
+
+<p><img align="right" src="/assets/security-insights-logo.png" alt="Security Insights Logo" width="200" /></p>
+
+<p>Security Insights provides a mechanism for projects to report information about their security in a machine-processable way. It is formatted as a YAML file to make it easy to read and edit by humans.</p>
+
+<p>The data tracked within this specification is intended to fill the gaps between simplified solutions such as <code class="language-plaintext highlighter-rouge">SECURITY.md</code> and comprehensive automated solutions such as SBOMs. In that gap lay elements that must be self-reported by projects to allow end-users to make informed security decisions.</p>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3 id="for-project-maintainers">For Project Maintainers</h3>
+
+<p>Projects adopting the specification in a single project repository should be able to get started and produce a useful <code class="language-plaintext highlighter-rouge">security-insights.yml</code> in about 30 minutes by consulting the <a href="https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml">example-minimum.yml</a>.</p>
+
+<p><strong>Getting Started:</strong></p>
+<ol>
+  <li>Review the <a href="/schema/">Schema Documentation</a> to understand available fields</li>
+  <li>Start with the <a href="https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml">minimum example</a></li>
+  <li>Place your <code class="language-plaintext highlighter-rouge">security-insights.yml</code> file in the root of your repository or in <code class="language-plaintext highlighter-rouge">.github/</code> or <code class="language-plaintext highlighter-rouge">.gitlab/</code></li>
+  <li>Validate your file using the <a href="https://github.com/ossf/security-insights-spec/blob/main/spec/schema.cue">CUE schema</a></li>
+</ol>
+
+<p><strong>Multi-Repository Projects:</strong>
+If your project has multiple repositories, you can define a detailed and centralized insights file in one repository and reuse the <code class="language-plaintext highlighter-rouge">project</code> definition across other files. See the <a href="https://github.com/ossf/security-insights-spec/tree/main/examples">multi-repository examples</a> for details.</p>
+
+<h3 id="for-project-consumers">For Project Consumers</h3>
+
+<p>Consumers of the <code class="language-plaintext highlighter-rouge">security-insights.yml</code> file(s) provided by projects should assume the contents will be updated any time the relevant information changes. The specification enables automated tooling to parse and analyze security information.</p>
+
+<h2 id="documentation">Documentation</h2>
+
+<ul>
+  <li><strong><a href="/schema/">Schema Documentation</a></strong> - Complete reference for all fields in the specification</li>
+  <li><strong><a href="https://github.com/ossf/security-insights-spec/tree/main/examples">Examples</a></strong> - Example files for different use cases:
+    <ul>
+      <li><a href="https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml">example-minimum.yml</a> - Minimal required fields</li>
+      <li><a href="https://github.com/ossf/security-insights-spec/blob/main/examples/example-full.yml">example-full.yml</a> - All possible fields</li>
+      <li><a href="https://github.com/ossf/security-insights-spec/blob/main/examples/example-multi-repository-project.yml">example-multi-repository-project.yml</a> - Primary repository for multi-repo projects</li>
+      <li><a href="https://github.com/ossf/security-insights-spec/blob/main/examples/example-multi-repository-project-reuse.yml">example-multi-repository-project-reuse.yml</a> - Secondary repository example</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="releases">Releases</h2>
+
+<p>This repository often remains unchanged from the latest release, but may diverge as incremental development takes place in preparation for an upcoming release. Any differences between the latest release and the main branch should only be considered previews of the next release.</p>
+
+<p>To ensure you are adhering to an official version of the specification, please refer to the <code class="language-plaintext highlighter-rouge">schema.cue</code> and <code class="language-plaintext highlighter-rouge">Security-Insights-{version}.pdf</code> in the <a href="https://github.com/ossf/security-insights-spec/releases/latest">latest release</a>.</p>
+
+<h2 id="tooling-ecosystem">Tooling Ecosystem</h2>
+
+<p>As the adoption of Security Insights grows, so does the opportunity to automatically ingest it:</p>
+
+<ul>
+  <li><strong><a href="https://clomonitor.io/">CLOMonitor</a></strong> - The Linux Foundation’s tool that parses Security Insights files to determine whether projects have reported on select security factors</li>
+  <li><strong><a href="https://github.com/ossf/si-tooling">si-tooling</a></strong> - Community-maintained tools for reading, validating and manipulating Security Insights data</li>
+</ul>
+
+<h2 id="maintenance">Maintenance</h2>
+
+<p>The specification is maintained by the <a href="https://github.com/ossf/security-insights-spec/blob/main/docs/MAINTAINERS.md">Security Insights maintainers</a> according to the <a href="https://github.com/ossf/security-insights-spec/blob/main/docs/GOVERNANCE.md">governance documentation</a>.</p>
+
+<p>Discussion and feedback should take place in <a href="https://github.com/ossf/security-insights-spec/issues">GitHub Issues</a>. We ask that you follow the <a href="https://github.com/ossf/security-insights-spec/blob/main/docs/GOVERNANCE.md#security-insights-enhancement-proposals">Security Insights Enhancement Proposal</a> process to explore potential changes to the specification.</p>
+
+<h2 id="get-involved">Get Involved</h2>
+
+<ul>
+  <li><strong>Slack</strong>: Join the <a href="https://openssf.slack.com/messages/security_insights/">OpenSSF Security Insights channel</a></li>
+  <li><strong>GitHub</strong>: Contribute at <a href="https://github.com/ossf/security-insights-spec">ossf/security-insights-spec</a></li>
+  <li><strong>Email</strong>: Subscribe to <a href="mailto:openssf-sig-security-insights+subscribe@lists.openssf.org">openssf-sig-security-insights@lists.openssf.org</a></li>
+</ul>
+
+
+      </div><link id="fa-stylesheet" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css">
+
+<footer class="site-footer h-card">
+  <data class="u-url" value="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <ul class="contact-list">
+          <li class="p-name">Security Insights Maintainers</li>
+          <li><a class="u-email" href="mailto:openssf-sig-security-insights+subscribe@lists.openssf.org">openssf-sig-security-insights+subscribe@lists.openssf.org</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>Security Insights provides a mechanism for projects to report information about  their security in a machine-processable way. The data tracked within this  specification fills the gaps between simplified solutions such as SECURITY.md and  comprehensive automated solutions such as SBOMs.
+</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+    <a rel="me" href="https://github.com/ossf" target="_blank" title="OpenSSF GitHub">
+      <span class="grey fa-brands fa-github fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://x.com/openssf" target="_blank" title="OpenSSF at X (formerly Twitter)">
+      <span class="grey fa-brands fa-x-twitter fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://bsky.app/profile/openssf.org" target="_blank" title="OpenSSF at BlueSky">
+      <span class="grey fa-brands fa-bluesky fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://www.linkedin.com/company/openssf/" target="_blank" title="OpenSSF at LinkedIn">
+      <span class="grey fa-brands fa-linkedin fa-lg"></span>
+    </a>
+  </li>
+  <li>
+    <a href="http://0.0.0.0:4000/feed.xml" target="_blank" title="Subscribe to syndication feed">
+      <svg class="svg-icon grey" viewbox="0 0 16 16">
+        <path d="M12.8 16C12.8 8.978 7.022 3.2 0 3.2V0c8.777 0 16 7.223 16 16h-3.2zM2.194
+          11.61c1.21 0 2.195.985 2.195 2.196 0 1.21-.99 2.194-2.2 2.194C.98 16 0 15.017 0
+          13.806c0-1.21.983-2.195 2.194-2.195zM10.606
+          16h-3.11c0-4.113-3.383-7.497-7.496-7.497v-3.11c5.818 0 10.606 4.79 10.606 10.607z"
+        />
+      </svg>
+    </a>
+  </li>
+</ul>
+</div>
+    
+    <div class="wrapper">
+        Copyright © Security Insights contributors, a Series of LF Projects, LLC.
+        For website terms of use, trademark policy, and other project policies please see <a href="https://lfprojects.org">https://lfprojects.org</a>.
+        This site is open source. View or contribute at <a href="">GitHub</a>.
+    </div>
+
+  </div>
+
+</footer>
+
+</main>
+
+  </body>
+</html>
+

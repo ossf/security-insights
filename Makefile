@@ -30,6 +30,16 @@ genopenapi:
 gendocs: genopenapi
 	@echo "  >  Generating markdown from OpenAPI ..."
 	@cd cmd/openapi2md && go run . -input ../../openapi.yaml -output ../../spec
+	@echo "  >  Copying schema.md to docs/ for website ..."
+	@{ \
+		echo "---"; \
+		echo "layout: default"; \
+		echo "title: Schema Documentation"; \
+		echo "nav-title: Schema"; \
+		echo "---"; \
+		echo ""; \
+		cat spec/schema.md; \
+	} > docs/schema.md
 	@echo "  >  Documentation generation complete!"
 
 genpdf: gendocs
@@ -104,4 +114,20 @@ genpdf: gendocs
 	fi
 	@echo "  >  PDF generation complete!"
 
-PHONY: lintcue lintyml cuegen genopenapi gendocs genpdf
+start: gendocs
+	@echo "  >  Starting Jekyll site ..."
+	@if ! command -v bundle >/dev/null 2>&1; then \
+		echo "ERROR: bundle not found. Install bundler to run the site."; \
+		echo "  macOS: gem install bundler"; \
+		echo "  Linux: gem install bundler"; \
+		exit 1; \
+	fi
+	@cd docs && \
+		if [ ! -f Gemfile.lock ]; then \
+			echo "  >  Installing Jekyll dependencies ..."; \
+			bundle install; \
+		fi && \
+		echo "  >  Starting Jekyll server at http://localhost:4000 ..."; \
+		bundle exec jekyll serve --host 0.0.0.0
+
+PHONY: lintcue lintyml cuegen genopenapi gendocs genpdf start
