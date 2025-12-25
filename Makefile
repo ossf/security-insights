@@ -40,7 +40,7 @@ genpdf: gendocs
 		echo "  Linux: apt-get install pandoc or yum install pandoc"; \
 		exit 1; \
 	fi
-	@VERSION=$$(grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' spec/schema.md 2>/dev/null | head -1 || echo "v2.0.0"); \
+	@VERSION=$$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' spec/schema.md 2>/dev/null | head -1 | sed 's/^/v/' || echo "v2.0.0"); \
 	PDF_ENGINE=""; \
 	if command -v pdflatex >/dev/null 2>&1; then \
 		PDF_ENGINE="pdflatex"; \
