@@ -155,6 +155,14 @@ func parseDefinitionField(field *ast.Field, spec *OpenAPISpec) {
 				}
 			}
 		}
+		// Check if it's a CallExpr (e.g., time.Format for Date)
+		if ce, ok := field.Value.(*ast.CallExpr); ok {
+			schema := convertTypeAlias(ce, spec, description)
+			if schema != nil && (schema.Pattern != "" || schema.Format != "") {
+				spec.Components.Schemas[typeName] = schema
+				return
+			}
+		}
 		// Use convertExprToSchema for other cases
 		schema := convertExprToSchema(field.Value, spec, description)
 		if schemaInfo, ok := schema.(*SchemaInfo); ok {
