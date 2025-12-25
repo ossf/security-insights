@@ -11,9 +11,9 @@ import (
 )
 
 type OpenAPISpec struct {
-	OpenAPI    string                 `yaml:"openapi" json:"openapi"`
-	Info       OpenAPIInfo            `yaml:"info" json:"info"`
-	Components OpenAPIComponents      `yaml:"components" json:"components"`
+	OpenAPI    string            `yaml:"openapi" json:"openapi"`
+	Info       OpenAPIInfo       `yaml:"info" json:"info"`
+	Components OpenAPIComponents `yaml:"components" json:"components"`
 }
 
 type OpenAPIInfo struct {
@@ -28,7 +28,7 @@ type OpenAPIComponents struct {
 
 type SchemaInfo struct {
 	Type        string                 `yaml:"type,omitempty" json:"type,omitempty"`
-	Description string                `yaml:"description,omitempty" json:"description,omitempty"`
+	Description string                 `yaml:"description,omitempty" json:"description,omitempty"`
 	Properties  map[string]interface{} `yaml:"properties,omitempty" json:"properties,omitempty"`
 	Required    []string               `yaml:"required,omitempty" json:"required,omitempty"`
 	Pattern     string                 `yaml:"pattern,omitempty" json:"pattern,omitempty"`
@@ -397,4 +397,3 @@ func writeOpenAPISpec(spec *OpenAPISpec, outputPath string) error {
 
 	return os.WriteFile(outputPath, data, 0644)
 }
-
