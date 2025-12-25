@@ -65,8 +65,7 @@ Documentation is generated from the CUE schema using a CUE→OpenAPI→Markdown 
 3. **Generate PDF**: `make genpdf` - Converts markdown files to PDF (requires pandoc)
 
 **Prerequisites:**
-- Go (for CUE to OpenAPI conversion)
-- Python 3 with `openapi-markdown` package: `pip3 install openapi-markdown`
+- Go (for CUE to OpenAPI and OpenAPI to Markdown conversion)
 - Pandoc (optional, for PDF generation): `brew install pandoc` (macOS) or `apt-get install pandoc` (Linux)
 
 Examples are also available to provide further context to the specification details above.

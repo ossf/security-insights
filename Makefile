@@ -29,23 +29,7 @@ genopenapi:
 
 gendocs: genopenapi
 	@echo "  >  Generating markdown from OpenAPI ..."
-	@if ! command -v openapi2markdown >/dev/null 2>&1 && ! python3 -c "import openapi_markdown" 2>/dev/null; then \
-		echo "ERROR: openapi-markdown not found. Install it with:"; \
-		echo "  pip3 install openapi-markdown"; \
-		echo "  Or: pip3 install --user openapi-markdown"; \
-		echo ""; \
-		echo "Alternatively, install openapi-to-md:"; \
-		echo "  pip3 install openapi-to-md"; \
-		exit 1; \
-	fi
-	@if command -v openapi2markdown >/dev/null 2>&1; then \
-		openapi2markdown openapi.yaml spec/; \
-	elif python3 -c "import openapi_markdown" 2>/dev/null; then \
-		python3 -c "from openapi_markdown import convert; import sys; convert('openapi.yaml', 'spec')"; \
-	else \
-		echo "ERROR: Could not find openapi-markdown tool"; \
-		exit 1; \
-	fi
+	@cd cmd/openapi2md && go run . -input ../../openapi.yaml -output ../../spec
 	@echo "  >  Documentation generation complete!"
 
 genpdf: gendocs
@@ -56,8 +40,8 @@ genpdf: gendocs
 		echo "  Linux: apt-get install pandoc or yum install pandoc"; \
 		exit 1; \
 	fi
-	@VERSION=$$(grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' spec/header.md 2>/dev/null | head -1 || echo "v2.0.0"); \
-	cd spec && pandoc header.md project.md repository.md aliases.md \
+	@VERSION=$$(grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' spec/schema.md 2>/dev/null | head -1 || echo "v2.0.0"); \
+	cd spec && pandoc schema.md \
 		--from markdown \
 		--to pdf \
 		--output ../Security-Insights-$$VERSION.pdf \
@@ -71,7 +55,7 @@ genpdf: gendocs
 		--metadata author="OpenSSF" \
 		--metadata date="$$(date +%Y-%m-%d)" 2>&1 | grep -v "LaTeX Warning" || \
 		(echo "  >  PDF generation with pdflatex failed. Trying HTML fallback..." && \
-		 pandoc header.md project.md repository.md aliases.md \
+		 pandoc schema.md \
 			--from markdown \
 			--to html \
 			--standalone \
