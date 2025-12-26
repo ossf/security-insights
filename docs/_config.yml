@@ -49,12 +49,12 @@ minima:
 
 # Navigation structure with groups
 navigation:
-  - name: Home
-    path: index.md
   - name: Schema
     path: schema.md
-  - name: FAQ
-    path: FAQ.md
+  - name: About
+    children:
+      - path: index.md
+      - path: FAQ.md
   - name: Governance
     children:
       - path: GOVERNANCE.md
