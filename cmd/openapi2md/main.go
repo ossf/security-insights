@@ -112,7 +112,7 @@ func convertOpenAPIToMarkdown(inputFile, outputDir string) error {
 			var schema Schema
 			yaml.Unmarshal(schemaBytes, &schema)
 
-			buf.WriteString(fmt.Sprintf("## `%s`\n\n", strings.ToLower(name)))
+			buf.WriteString(fmt.Sprintf("### `%s`\n\n", strings.ToLower(name)))
 			if schema.Description != "" {
 				buf.WriteString(schema.Description + "\n\n")
 			}
