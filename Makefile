@@ -65,7 +65,7 @@ genpdf: gendocs
 		echo "  Linux: apt-get install pandoc or yum install pandoc"; \
 		exit 1; \
 	fi
-	@VERSION=$$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' spec/schema.md 2>/dev/null | head -1 | sed 's/^/v/' || echo "v2.0.0"); \
+	@VERSION=$$(cat VERSION 2>/dev/null | sed 's/^/v/'); \
 	PDF_ENGINE=""; \
 	if command -v pdflatex >/dev/null 2>&1; then \
 		PDF_ENGINE="pdflatex"; \
