@@ -774,7 +774,7 @@ The main URL for this repository.
 
 The following aliases are used throughout the schema for consistency.
 
-## `date`
+### `date`
 
 Date is a date in the format YYYY-MM-DD
 
@@ -784,7 +784,7 @@ Date is a date in the format YYYY-MM-DD
 
 ---
 
-## `email`
+### `email`
 
 Email is a valid email address
 
@@ -793,7 +793,7 @@ Email is a valid email address
 
 ---
 
-## `schemaversion`
+### `schemaversion`
 
 SchemaVersion is a version string in the format X.Y.Z
 
@@ -802,7 +802,7 @@ SchemaVersion is a version string in the format X.Y.Z
 
 ---
 
-## `url`
+### `url`
 
 URL is a TLS URL
 
