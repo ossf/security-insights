@@ -98,3 +98,45 @@ a:active {
   text-decoration: underline;
 }
 
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-dropdown-toggle {
+  cursor: pointer;
+}
+
+.nav-dropdown-toggle:hover {
+  text-decoration: underline;
+}
+
+.nav-dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  top: 100%;
+  left: 0;
+  padding: 8px 0;
+  margin-top: 4px;
+}
+
+.nav-dropdown:hover .nav-dropdown-content {
+  display: block;
+}
+
+.nav-dropdown-item {
+  display: block;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-dropdown-item:hover {
+  background-color: #f1f1f1;
+  text-decoration: underline;
+}
+

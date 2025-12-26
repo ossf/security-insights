@@ -46,6 +46,17 @@ minima:
        icon: linkedin
        url: "https://www.linkedin.com/company/openssf/"
 
+# Navigation structure with groups
+navigation:
+  - name: Home
+    path: index.md
+  - name: Schema
+    path: schema.md
+  - name: Governance
+    children:
+      - path: GOVERNANCE.md
+      - path: MAINTAINERS.md
+
 # GitHub metadata
 repository: ossf/security-insights-spec
 github:
@@ -64,8 +75,6 @@ exclude:
   - vendor/gems/
   - vendor/ruby/
   - WEBSITE_PLAN.md
-  - GOVERNANCE.md
-  - MAINTAINERS.md
   - roadmap/
   - threat-model/
   - user-story.md

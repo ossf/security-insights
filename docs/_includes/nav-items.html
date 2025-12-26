@@ -1,11 +1,44 @@
 <div class="nav-items">
-  {%- for path in include.paths -%}
-  {%- assign hyperpage = site.pages | where: "path", path | first -%}
-  {%- if hyperpage.nav-title -%}
-  <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ hyperpage.nav-title | escape }}</a>
-  {%- elsif hyperpage.title -%}
-  <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ hyperpage.title | escape }}</a>
+  {%- if site.navigation -%}
+    {%- for nav_item in site.navigation -%}
+      {%- if nav_item.children -%}
+        <div class="nav-dropdown">
+          <span class="nav-item nav-dropdown-toggle">{{ nav_item.name | escape }}</span>
+          <div class="nav-dropdown-content">
+            {%- for child in nav_item.children -%}
+              {%- assign child_page = site.pages | where: "path", child.path | first -%}
+              {%- if child_page -%}
+                {%- if child_page.nav-title -%}
+                  <a class="nav-dropdown-item" href="{{ child_page.url | relative_url }}">{{ child_page.nav-title | escape }}</a>
+                {%- elsif child_page.title -%}
+                  <a class="nav-dropdown-item" href="{{ child_page.url | relative_url }}">{{ child_page.title | escape }}</a>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- else -%}
+        {%- assign hyperpage = site.pages | where: "path", nav_item.path | first -%}
+        {%- if hyperpage -%}
+          {%- if hyperpage.nav-title -%}
+            <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ hyperpage.nav-title | escape }}</a>
+          {%- elsif hyperpage.title -%}
+            <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ hyperpage.title | escape }}</a>
+          {%- elsif nav_item.name -%}
+            <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ nav_item.name | escape }}</a>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  {%- else -%}
+    {%- for path in include.paths -%}
+    {%- assign hyperpage = site.pages | where: "path", path | first -%}
+    {%- if hyperpage.nav-title -%}
+    <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ hyperpage.nav-title | escape }}</a>
+    {%- elsif hyperpage.title -%}
+    <a class="nav-item" href="{{ hyperpage.url | relative_url }}">{{ hyperpage.title | escape }}</a>
+    {%- endif -%}
+    {%- endfor %}
   {%- endif -%}
-  {%- endfor %}
 </div>
 
