@@ -133,6 +133,10 @@ start: genindex gendocs run
 
 run:
 	@echo "  >  Starting Jekyll site ..."
+	@if ! command -v ruby -v >/dev/null 2>&1; then \
+		echo "ERROR: ruby not found. Install ruby to run the site."; \
+		exit 1; \
+	fi
 	@if ! command -v bundle >/dev/null 2>&1; then \
 		echo "ERROR: bundle not found. Install bundler to run the site."; \
 		echo "  macOS: gem install bundler"; \
@@ -140,10 +144,8 @@ run:
 		exit 1; \
 	fi
 	@cd docs && \
-		if [ ! -f Gemfile.lock ]; then \
-			echo "  >  Installing Jekyll dependencies ..."; \
-			bundle install; \
-		fi && \
+		echo "  >  Installing Jekyll dependencies ..."; \
+		bundle install; \
 		echo "  >  Starting Jekyll server at http://localhost:4000 ..."; \
 		bundle exec jekyll serve --host 0.0.0.0
 

@@ -84,5 +84,4 @@ Discussion and feedback should take place in [GitHub Issues](https://github.com/
 
 - **Slack**: Join the [OpenSSF Security Insights channel](https://openssf.slack.com/messages/security_insights/)
 - **GitHub**: Contribute at [ossf/security-insights-spec](https://github.com/ossf/security-insights-spec)
-- **Email**: Subscribe to [openssf-sig-security-insights@lists.openssf.org](mailto:openssf-sig-security-insights+subscribe@lists.openssf.org)
 
