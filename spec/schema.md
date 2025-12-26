@@ -13,6 +13,13 @@ Optional:
 
 ---
 
+**Table of Contents**
+
+* 
+{:toc}
+
+---
+
 ## `header`
 
 header captures high level metadata about the schema.

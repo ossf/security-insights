@@ -213,6 +213,12 @@ func generateSecurityInsightsSection(schema Schema, spec OpenAPISpec, version st
 		buf.WriteString("\n---\n\n")
 	}
 
+	// Table of Contents
+	buf.WriteString("**Table of Contents**\n\n")
+	buf.WriteString("* \n")
+	buf.WriteString("{:toc}\n\n")
+	buf.WriteString("---\n\n")
+
 	// Generate nested sections for each field
 	if schema.Properties != nil {
 		// Sort property names for deterministic output
