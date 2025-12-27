@@ -1,0 +1,85 @@
+title: Security Insights Specification
+author:
+  name: Security Insights Maintainers
+  email: openssf-sig-security-insights+subscribe@lists.openssf.org
+logo: /assets/logo.svg
+url: "https://security-insights.openssf.org"
+description: > 
+  Security Insights provides a mechanism for projects to report information about 
+  their security in a machine-processable way. The data tracked within this 
+  specification fills the gaps between simplified solutions such as SECURITY.md and 
+  comprehensive automated solutions such as SBOMs.
+
+titles_from_headings:
+  enabled:     true
+  strip_title: true
+
+kramdown:
+  toc_levels: "2..3"
+
+# Add to plugins: list
+plugins:
+  - jekyll-remote-theme
+  - jekyll-feed
+  - jekyll-seo-tag
+
+remote_theme: jekyll/minima
+
+# Minima-specific settings
+minima:
+   skin: classic
+   nav_pages:
+     - index.md
+     - schema.md
+     - FAQ.md
+   show_excerpts: false
+   social_links:
+     - title: OpenSSF GitHub
+       icon: github
+       url: "https://github.com/ossf"
+     - title: OpenSSF at X (formerly Twitter)
+       icon: x-twitter
+       url: "https://x.com/openssf"
+     - title: OpenSSF at BlueSky
+       icon: bluesky
+       url: "https://bsky.app/profile/openssf.org"
+     - title: OpenSSF at LinkedIn
+       icon: linkedin
+       url: "https://www.linkedin.com/company/openssf/"
+
+# Navigation structure with groups
+navigation:
+  - name: Schema
+    path: schema.md
+  - name: About
+    children:
+      - path: index.md
+      - path: FAQ.md
+  - name: Governance
+    children:
+      - path: GOVERNANCE.md
+      - path: MAINTAINERS.md
+
+# GitHub metadata
+repository: ossf/security-insights-spec
+github:
+  is_project_page: true
+
+# Markdown settings
+markdown: kramdown
+
+# Exclude from processing
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - WEBSITE_PLAN.md
+  - roadmap/
+  - threat-model/
+  - user-story.md
+  - versioning-policy.md
+

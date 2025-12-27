@@ -1,3 +1,9 @@
+---
+layout: default
+title: Governance
+nav-title: Governance
+---
+
 # Security Insights Project Governance
 
 As a developing project, Security Insights aims to have a quick development cycle where decisions and community issues are resolved promptly while capturing the input of interested stakeholders.

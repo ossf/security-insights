@@ -1,3 +1,9 @@
+---
+layout: default
+title: Maintainers
+nav-title: Maintainers
+---
+
 # Maintainers
 
 This following are current maintainers of the specification. 
@@ -9,4 +15,4 @@ This following are current maintainers of the specification.
 
 - Luigi Gubello (@luigigubello), Pitch
 
-Additions and status changes may be made via the processes outlined in the [governance](/GOVERNANCE.md) document.
+Additions and status changes may be made via the processes outlined in the [governance](GOVERNANCE.html) document.

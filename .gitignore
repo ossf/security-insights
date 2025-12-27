@@ -1,1 +1,5 @@
 cue_types_gen.go
+openapi.yaml
+cmd/*/cue2openapi
+cmd/*/openapi2md
+docs/_site/
