@@ -275,7 +275,7 @@ Optional:
 - `in-scope`
 - `out-of-scope`
 - `pgp-key`
-- `security-policy`
+- `policy`
 
 ---
 
@@ -388,19 +388,19 @@ The PGP public key for secure communication.
 
 ---
 
+#### `project.vulnerability-reporting.policy` (optional)
+
+Path to a page containing rules for security-related disclosures.
+
+- **Type**: [URL]
+
+---
+
 #### `project.vulnerability-reporting.reports-accepted`
 
 Indicates whether this project currently accepts vulnerability reports.
 
 - **Type**: `boolean`
-
----
-
-#### `project.vulnerability-reporting.security-policy` (optional)
-
-Path to a page containing guidelines for security-related disclosures.
-
-- **Type**: [URL]
 
 ---
 
