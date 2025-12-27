@@ -172,4 +172,27 @@ mod-publish:
 	echo "  >  Publishing version $$VERSION ..."; \
 	cue mod publish --version $$VERSION
 
-PHONY: lintcue lintyml cuegen genopenapi genindex gendocs genpdf start run mod-tidy mod-resolve mod-publish
+test:
+	@echo "  >  Testing example files ..."
+	@echo "  >  Validating YAML examples ..."
+	@for file in examples/*.yml; do \
+		if [ -f "$$file" ]; then \
+			echo "  >  Testing $$file ..."; \
+			cue vet -d '#SecurityInsights' ./schema.cue "$$file" || exit 1; \
+		fi; \
+	done
+	@echo "  >  Validating CUE examples ..."
+	@for file in examples/*.cue; do \
+		if [ -f "$$file" ]; then \
+			echo "  >  Testing $$file ..."; \
+			if cue vet -c "$$file" 2>&1 | grep -q "cannot determine package name"; then \
+				echo "  >  Note: $$file requires module to be published for full validation"; \
+				cue fmt "$$file" > /dev/null 2>&1 && echo "  >  Syntax check passed" || (echo "  >  Syntax error in $$file" && exit 1); \
+			else \
+				cue vet -c "$$file" || exit 1; \
+			fi; \
+		fi; \
+	done
+	@echo "  >  All example files validated successfully!"
+
+PHONY: lintcue lintyml cuegen genopenapi genindex gendocs genpdf start run mod-tidy mod-resolve mod-publish test
