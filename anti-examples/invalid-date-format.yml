@@ -1,0 +1,40 @@
+# Anti-example: Invalid date format
+# This file is intentionally malformed - dates don't match the required YYYY-MM-DD format
+# Expected error: Dates must be in format YYYY-MM-DD
+
+header:
+  schema-version: "2.2.0"
+  last-updated: "01/15/2025"  # Invalid: wrong format
+  last-reviewed: "2025-1-15"  # Invalid: missing leading zero
+  url: https://example.com/security-insights.yml
+
+project:
+  name: Example Project
+  administrators:
+    - name: Jane Doe
+      primary: true
+  repositories:
+    - name: example-repo
+      url: https://github.com/example/example-repo
+      comment: Main repository
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+
+repository:
+  url: https://github.com/example/example-repo
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: Jane Doe
+      primary: true
+  license:
+    url: https://github.com/example/example-repo/blob/main/LICENSE
+    expression: MIT
+  security:
+    assessments:
+      self:
+        comment: Self-assessment completed
+        date: "15-01-2025"  # Invalid: wrong format
+
