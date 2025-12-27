@@ -59,7 +59,7 @@ Projects adopting the specification in a single repository should be able to get
 1. Review the [Schema Documentation](schema.md) to understand available fields
 2. Start with the [minimum example](https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml)
 3. Place your `security-insights.yml` file in the root of your repository or in your source forge directory (e.g. `.github/` or `.gitlab/`) to support automated detection
-4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/spec/schema.cue)
+4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/schema.cue)
 
 ### Where should I place the security-insights.yml file?
 
@@ -67,7 +67,49 @@ Place your `security-insights.yml` file in the root of your repository or in you
 
 ### How do I validate my security-insights.yml file?
 
-Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/spec/schema.cue). You can also use linter tools that help users to check the YAML file schema.
+Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/schema.cue). You can also use linter tools that help users to check the YAML file schema.
+
+### How do I use the Security Insights CUE module in my project?
+
+The Security Insights schema is available as a CUE module that can be imported and used in your own CUE projects for validation and type checking.
+
+**To use the module:**
+
+1. Initialize a CUE module in your project (if not already done):
+   ```bash
+   cue mod init github.com/your-org/your-project
+   ```
+
+2. Add the Security Insights module as a dependency:
+   ```bash
+   cue mod get github.com/ossf/security-insights@v2.2.0
+   ```
+
+3. Import and use the schema in your CUE files:
+   ```cue
+   import "github.com/ossf/security-insights"
+
+   // Validate your security insights data
+   data: #SecurityInsights
+   ```
+
+**Example validation:**
+
+Create a `validate.cue` file:
+```cue
+package main
+
+import "github.com/ossf/security-insights"
+
+data: #SecurityInsights
+```
+
+Then validate your YAML file:
+```bash
+cue vet validate.cue security-insights.yml
+```
+
+The module is published to the CUE registry at `registry.cue.works/github.com/ossf/security-insights`. You can use any published version by specifying it in the import path (e.g., `@v2.2.0` for a specific version or `@latest` for the latest version).
 
 ### What's the minimum required information?
 
