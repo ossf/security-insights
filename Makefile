@@ -1,30 +1,29 @@
 lintcue:
 	@echo "  >  Linting CUE schema ..."
-	@cd spec
-	@cue vet ./spec --all-errors --verbose
+	@cue vet ./schema.cue --all-errors --verbose
 
 lintyml:
 	@echo "  >  Linting YAML files ..."
 	@echo "  >  Linting .github/security-insights.yml ..."
-	@cue vet -d '#SecurityInsights' ./spec .github/security-insights.yml
+	@cue vet -d '#SecurityInsights' ./schema.cue .github/security-insights.yml
 	@echo "  >  Linting template-full.yml ..."
-	cue vet -d '#SecurityInsights' ./spec examples/example-full.yml
+	cue vet -d '#SecurityInsights' ./schema.cue examples/example-full.yml
 	@echo "  >  Linting template-minimum.yml ..."
-	cue vet -d '#SecurityInsights' ./spec examples/example-minimum.yml
+	cue vet -d '#SecurityInsights' ./schema.cue examples/example-minimum.yml
 	@echo "  >  Linting template-multi-repository-project-reuse.yml ..."
-	cue vet -d '#SecurityInsights' ./spec examples/example-multi-repository-project-reuse.yml
+	cue vet -d '#SecurityInsights' ./schema.cue examples/example-multi-repository-project-reuse.yml
 	@echo "  >  Linting template-multi-repository-project.yml ..."
-	cue vet -d '#SecurityInsights' ./spec examples/example-multi-repository-project.yml
+	cue vet -d '#SecurityInsights' ./schema.cue examples/example-multi-repository-project.yml
 
 cuegen:
 	@echo "  >  Generating types from cue schema ..."
-	@cue exp gengotypes spec/schema.cue
+	@cue exp gengotypes schema.cue
 	@echo "  >  vet the generated go types ..."
 	@go vet cue_types_gen.go
 
 genopenapi:
 	@echo "  >  Converting CUE schema to OpenAPI ..."
-	@cd cmd/cue2openapi && go run . -schema ../../spec/schema.cue -output ../../openapi.yaml
+	@cd cmd/cue2openapi && go run . -schema ../../schema.cue -output ../../openapi.yaml
 	@echo "  >  OpenAPI schema generation complete!"
 
 genindex:
@@ -143,10 +142,34 @@ run:
 		echo "  Linux: gem install bundler"; \
 		exit 1; \
 	fi
-	@cd docs && \
+	@		cd docs && \
 		echo "  >  Installing Jekyll dependencies ..."; \
 		bundle install; \
 		echo "  >  Starting Jekyll server at http://localhost:4000 ..."; \
 		bundle exec jekyll serve --host 0.0.0.0
 
-PHONY: lintcue lintyml cuegen genopenapi genindex gendocs genpdf start run
+mod-tidy:
+	@echo "  >  Tidying CUE module dependencies ..."
+	@cue mod tidy
+	@echo "  >  Module dependencies tidied!"
+
+mod-resolve:
+	@echo "  >  Resolving module path ..."
+	@cue mod resolve github.com/ossf/security-insights
+
+mod-publish:
+	@echo "  >  Publishing CUE module ..."
+	@echo "  >  Note: Publishing requires authentication to the registry."
+	@echo "  >  The module will be published to: registry.cue.works/github.com/ossf/security-insights"
+	@echo "  >  Version will be determined from git tags (e.g., v2.2.0)"
+	@echo ""
+	@read -p "  >  Continue with publish? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
+	@VERSION=$$(cat VERSION 2>/dev/null | sed 's/^/v/'); \
+	if [ -z "$$VERSION" ]; then \
+		echo "  >  ERROR: Could not determine version from VERSION file"; \
+		exit 1; \
+	fi; \
+	echo "  >  Publishing version $$VERSION ..."; \
+	cue mod publish --version $$VERSION
+
+PHONY: lintcue lintyml cuegen genopenapi genindex gendocs genpdf start run mod-tidy mod-resolve mod-publish
