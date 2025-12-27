@@ -38,27 +38,16 @@ type SchemaInfo struct {
 }
 
 func readVersion() string {
-	// Try to find VERSION file relative to current working directory
-	// Look in current dir, then parent, then parent's parent (to handle cmd/cue2openapi case)
-	paths := []string{
-		"VERSION",
-		"../VERSION",
-		"../../VERSION",
-	}
+	path := "../../VERSION"
 
-	for _, path := range paths {
-		if data, err := os.ReadFile(path); err == nil {
-			version := strings.TrimSpace(string(data))
-			// Remove "v" prefix if present
-			version = strings.TrimPrefix(version, "v")
-			if version != "" {
-				return version
-			}
+	if data, err := os.ReadFile(path); err == nil {
+		version := strings.TrimSpace(string(data))
+		if version != "" {
+			return version
 		}
 	}
 
-	// Fallback to default if VERSION file not found
-	return "2.1.0"
+	return "unknown version"
 }
 
 func parseCUEToOpenAPI(file *ast.File) *OpenAPISpec {
