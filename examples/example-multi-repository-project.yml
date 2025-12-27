@@ -1,11 +1,11 @@
 # Project and repository template for a multi-repository project
-# This file would be stored in the https://vcs.example.com/foobar/foo repository
-# and addressable via https://vcs.example.com/foobar/foo/security-insights.yml
+# This file would be stored in the https://example.com/foobar/foo repository
+# and addressable via https://example.com/foobar/foo/security-insights.yml
 header:
   schema-version: 2.0.0
   last-updated: '2025-03-01'
   last-reviewed: '2025-04-01'
-  url: https://example.com/kubernetes/kubernetes
+  url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
   comment: |
     This file contains the minimum information for both project and repository.
     It not required to include both a project and repository section if the project
@@ -21,11 +21,11 @@ project:
       primary: true
   repositories:
     - name: Foo
-      url: https://vcs.example.com/foobar/foo
+      url: https://example.com/foobar/foo
       comment: |
         Foo is the core repo for FooBar.
     - name: Bar
-      url: https://vcs.example.com/foobar/bar
+      url: https://example.com/foobar/bar
       comment: |
         Bar is also part of the FooBar project.
   vulnerability-reporting:
@@ -33,7 +33,7 @@ project:
     bug-bounty-available: true
 
 repository:
-  url: https://vcs.example.com/foobar/foo
+  url: https://example.com/foobar/foo
   status: active
   accepts-change-request: true
   accepts-automated-change-request: true
