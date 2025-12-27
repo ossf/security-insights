@@ -1,6 +1,6 @@
 module github.com/ossf/security-insights-spec/cmd/cue2openapi
 
-go 1.21
+go 1.23.0
 
 require (
 	cuelang.org/go v0.7.0
@@ -17,6 +17,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc4 // indirect
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20230328191034-3462fbc510c0 // indirect
-	golang.org/x/net v0.16.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 )
