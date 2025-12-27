@@ -1,14 +1,14 @@
 # Repository template for a multi-repository project
-# This file would be stored in the https://vcs.example.com/foobar/bar repository
+# This file would be stored in the https://example.com/foobar/bar repository
 header:
   schema-version: 2.0.0
   last-updated: '2025-03-01'
   last-reviewed: '2025-04-01'
-  url: https://example.com/kubernetes/kubernetes
+  url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
   project-si-source: https://raw.githubusercontent.com/example/repo/refs/heads/main/security-insights.yml
 
 repository:
-  url: https://vcs.example.com/foobar/bar
+  url: https://example.com/foobar/bar
   status: active
   accepts-change-request: true
   accepts-automated-change-request: true

@@ -89,7 +89,7 @@ The version of the Security Insights schema being used.
 
 ### `header.url`
 
-The primary reference URL for this schema’s origin or repository.
+The original URL for the current Security Insights file. This should point to the canonical location where the file is hosted (e.g., a raw file URL in a version control system). This helps preserve context when the file is extracted from its source. This may also be referenced to help readers find the latest version of the security insights file, in the event that they are accessing it from an outdated source, such as a past release artifact. This is not to be confused with the URL for the project. Project URLs should be specified in `project.repositories` instead.
 
 - **Type**: [URL]
 

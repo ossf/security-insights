@@ -2,7 +2,7 @@ header:
   schema-version: 2.0.0
   last-updated: '2025-03-01'
   last-reviewed: '2025-04-01'
-  url: https://example.com/kubernetes/kubernetes
+  url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
   comment: |
     This file contains the minimum information for both project and repository.
     It not required to include both a project and repository section if the project
@@ -18,7 +18,7 @@ project:
       primary: true
   repositories:
     - name: Foo
-      url: https://vcs.example.com/foobar/foo
+      url: https://example.com/foobar/foo
       comment: |
         Foo is the core repo for FooBar.
   vulnerability-reporting:
@@ -26,7 +26,7 @@ project:
     bug-bounty-available: true
 
 repository:
-  url: https://vcs.example.com/foobar/foo
+  url: https://example.com/foobar/foo
   status: active
   accepts-change-request: true
   accepts-automated-change-request: true

@@ -2,7 +2,7 @@ header:
   schema-version: 2.0.0
   last-updated: '2025-03-01'
   last-reviewed: '2025-04-01'
-  url: https://example.com/foo/bar
+  url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
   comment: |
     This file contains all possible information for both project and repository,
     though it is not required to include all of this information every time.
@@ -33,11 +33,11 @@ project:
     signature-verification: https://example.com/signature-verification
   repositories:
     - name: Foo
-      url: https://vcs.example.com/foobar/foo
+      url: https://example.com/foobar/foo
       comment: |
         Foo is the core repo for FooBar.
     - name: Bar
-      url: https://vcs.example.com/foobar/bar
+      url: https://example.com/foobar/bar
       comment: |
         Bar is a subproject repo.
   vulnerability-reporting:
