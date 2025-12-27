@@ -174,25 +174,38 @@ mod-publish:
 
 test:
 	@echo "  >  Testing example files ..."
-	@echo "  >  Validating YAML examples ..."
+	@echo "  >  Validating good YAML examples (should pass) ..."
 	@for file in examples/*.yml; do \
 		if [ -f "$$file" ]; then \
 			echo "  >  Testing $$file ..."; \
-			cue vet -d '#SecurityInsights' ./schema.cue "$$file" || exit 1; \
+			cue vet -d '#SecurityInsights' ./schema.cue "$$file" || (echo "  >  ERROR: $$file should pass validation but failed!" && exit 1); \
+			echo "  >  ✓ $$file passed validation"; \
 		fi; \
 	done
-	@echo "  >  Validating CUE examples ..."
+	@echo "  >  Validating good CUE examples (should pass) ..."
 	@for file in examples/*.cue; do \
 		if [ -f "$$file" ]; then \
 			echo "  >  Testing $$file ..."; \
 			if cue vet -c "$$file" 2>&1 | grep -q "cannot determine package name"; then \
 				echo "  >  Note: $$file requires module to be published for full validation"; \
-				cue fmt "$$file" > /dev/null 2>&1 && echo "  >  Syntax check passed" || (echo "  >  Syntax error in $$file" && exit 1); \
+				cue fmt "$$file" > /dev/null 2>&1 && echo "  >  ✓ Syntax check passed" || (echo "  >  ERROR: Syntax error in $$file" && exit 1); \
 			else \
-				cue vet -c "$$file" || exit 1; \
+				cue vet -c "$$file" || (echo "  >  ERROR: $$file should pass validation but failed!" && exit 1); \
+				echo "  >  ✓ $$file passed validation"; \
 			fi; \
 		fi; \
 	done
-	@echo "  >  All example files validated successfully!"
+	@echo "  >  Validating anti-examples (should fail) ..."
+	@for file in examples/anti-examples/*.yml; do \
+		if [ -f "$$file" ]; then \
+			echo "  >  Testing $$file ..."; \
+			if cue vet -d '#SecurityInsights' ./schema.cue "$$file" 2>&1 > /dev/null; then \
+				echo "  >  ERROR: $$file should fail validation but passed!" && exit 1; \
+			else \
+				echo "  >  ✓ $$file correctly failed validation"; \
+			fi; \
+		fi; \
+	done
+	@echo "  >  All tests completed successfully!"
 
 PHONY: lintcue lintyml cuegen genopenapi genindex gendocs genpdf start run mod-tidy mod-resolve mod-publish test
