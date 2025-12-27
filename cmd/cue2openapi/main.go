@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	schemaPath := flag.String("schema", "spec/schema.cue", "Path to the CUE schema file")
+	schemaPath := flag.String("schema", "schema.cue", "Path to the CUE schema file")
 	outputPath := flag.String("output", "openapi.yaml", "Output path for OpenAPI schema")
 	flag.Parse()
 
