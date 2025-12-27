@@ -48,7 +48,7 @@ project:
       name: The security team at FooBar Enterprise provides security support for this project.
       email: security@something.com
       primary: true
-    security-policy: https://example.com/reporting.html
+    policy: https://example.com/reporting.html
     in-scope:
       - broken access control
       - other

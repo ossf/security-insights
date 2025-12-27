@@ -173,8 +173,8 @@ import (
 	// Additional comments or instructions about vulnerability reporting.
 	comment?: string @go(Comment,type=*string)
 
-	// Path to a page containing guidelines for security-related disclosures.
-	"security-policy"?: #URL @go(SecurityPolicy,type=*URL)
+	// Path to a page containing rules for security-related disclosures.
+	"policy"?: #URL @go(SecurityPolicy,type=*URL)
 
 	// The PGP public key for secure communication.
 	"pgp-key"?: string @go(PGPKey,type=*URL)
