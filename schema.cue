@@ -1,5 +1,3 @@
-package spec
-
 import (
 	"time"
 )

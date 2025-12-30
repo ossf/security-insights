@@ -1,0 +1,45 @@
+# Anti-example: Invalid email format
+# This file is intentionally malformed - email addresses don't match the required pattern
+# Expected error: Email must match pattern ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$
+
+header:
+  schema-version: "2.2.0"
+  last-updated: "2025-01-15"
+  last-reviewed: "2025-01-15"
+  url: https://example.com/security-insights.yml
+
+project:
+  name: Example Project
+  administrators:
+    - name: Jane Doe
+      primary: true
+      email: "not-an-email"  # Invalid: missing @ symbol
+  repositories:
+    - name: example-repo
+      url: https://github.com/example/example-repo
+      comment: Main repository
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    contact:
+      name: Security Team
+      primary: true
+      email: "invalid@email"  # Invalid: missing TLD
+
+repository:
+  url: https://github.com/example/example-repo
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: Jane Doe
+      primary: true
+      email: "spaces in@email.com"  # Invalid: contains spaces
+  license:
+    url: https://github.com/example/example-repo/blob/main/LICENSE
+    expression: MIT
+  security:
+    assessments:
+      self:
+        comment: Self-assessment completed
+

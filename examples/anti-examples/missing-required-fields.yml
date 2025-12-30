@@ -1,0 +1,16 @@
+# Anti-example: Missing required fields
+# This file is intentionally malformed - it's missing required fields
+# Expected error: Missing required fields like header.schema-version, header.last-updated, etc.
+
+header:
+  # Missing schema-version
+  # Missing last-updated
+  # Missing last-reviewed
+  url: https://example.com/security-insights.yml
+
+project:
+  name: Example Project
+  # Missing required administrators field
+  # Missing required repositories field
+  # Missing required vulnerability-reporting field
+
