@@ -26,7 +26,7 @@ project:
     reports-accepted: true
     bug-bounty-available: false
     contact:
-      name: The security OpenSSF triages security reports and provides support for all projects in the foundation.
+      name: The OpenSSF provides security support for all projects in the foundation.
       email: security@openssf.org
       primary: true
 
