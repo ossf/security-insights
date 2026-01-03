@@ -1,4 +1,4 @@
-module github.com/ossf/security-insights-spec/cmd/cue2openapi
+module github.com/ossf/security-insights/cmd/cue2openapi
 
 go 1.23.0
 
