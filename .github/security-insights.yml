@@ -48,7 +48,7 @@ repository:
   security:
     assessments:
       self:
-        evidence: https://github.com/ossf/security-insights-spec  /blob/main/docs/threat-model
+        evidence: https://github.com/ossf/security-insights-spec/blob/main/docs/threat-model
         comment: |
           A light-weight threat model was completed when the project was first started,
           and it remains accurate to-date.
