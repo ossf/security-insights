@@ -11,6 +11,8 @@ project:
     - name: Christopher Robinson
       affiliation: Linux Foundation
       primary: true
+  documentation:
+    quickstart-guide: https://github.com/ossf/security-insights?tab=readme-ov-file#quick-start
   repositories:
     - name: Security Insights
       url: https://github.com/ossf/security-insights-spec
@@ -23,6 +25,10 @@ project:
   vulnerability-reporting:
     reports-accepted: true
     bug-bounty-available: false
+    contact:
+      name: The security OpenSSF triages security reports and provides support for all projects in the foundation.
+      email: security@openssf.org
+      primary: true
 
 repository:
   status: active
@@ -34,13 +40,15 @@ repository:
     - name:        Eddie Knight
       affiliation: Sonatype
       primary:     true
+    - name:        Jason Meridth
+      affiliation: Chainguard
   license:
     url: https://github.com/ossf/security-insights-spec/blob/main/LICENSE
     expression: MIT AND Community Specification License 1.0
   security:
     assessments:
       self:
-        evidence: https://github.com/ossf/security-insights-spec/blob/main/docs/threat-model
+        evidence: https://github.com/ossf/security-insights-spec  /blob/main/docs/threat-model
         comment: |
           A light-weight threat model was completed when the project was first started,
           and it remains accurate to-date.
