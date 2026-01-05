@@ -39,7 +39,7 @@ A patch release (e.g., from `1.1.0` to `1.1.1`) includes minor fixes, typo corre
 
 ### 3.4 Procedure for Major Releases:
 
-- Discuss and propose the changes through open-source project communication channels (GitHub repo [ossf/security-insights-spec](https://github.com/ossf/security-insights-spec), OpenSSF Slack channels [#wg_metrics_and_metadata](https://openssf.slack.com/archives/C01A50B978T) and [#security_insights](https://openssf.slack.com/archives/C04BB493NET)).
+- Discuss and propose the changes through open-source project communication channels (GitHub repo [ossf/security-insights](https://github.com/ossf/security-insights), OpenSSF Slack channels [#wg_metrics_and_metadata](https://openssf.slack.com/archives/C01A50B978T) and [#security_insights](https://openssf.slack.com/archives/C04BB493NET)).
 - Conduct a review and discussion among community, and OpenSSF working groups.
 - Update the project with proposed changes, and update the changelog.
 - Release the updates through GitHub Release.

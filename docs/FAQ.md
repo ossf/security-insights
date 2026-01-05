@@ -57,9 +57,9 @@ Projects adopting the specification in a single repository should be able to get
 
 **Getting Started:**
 1. Review the [Schema Documentation](schema.md) to understand available fields
-2. Start with the [minimum example](https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml)
+2. Start with the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml)
 3. Place your `security-insights.yml` file in the root of your repository or in your source forge directory (e.g. `.github/` or `.gitlab/`) to support automated detection
-4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/schema.cue)
+4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights/blob/main/schema.cue)
 
 ### Where should I place the security-insights.yml file?
 
@@ -67,7 +67,7 @@ Place your `security-insights.yml` file in the root of your repository or in you
 
 ### How do I validate my security-insights.yml file?
 
-Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/schema.cue). You can also use linter tools that help users to check the YAML file schema.
+Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights/blob/main/schema.cue). You can also use linter tools that help users to check the YAML file schema.
 
 ### How do I use the Security Insights CUE module in my project?
 
@@ -117,7 +117,7 @@ The minimum viable product (MVP) should provide the following information:
 - Procedure to report a vulnerability (security contact, Vulnerability Disclosure Policy (VDP))
 - Owners contacts
 
-See the [minimum example](https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml) for a complete reference.
+See the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) for a complete reference.
 
 ## Trust and Reliability
 
@@ -155,7 +155,7 @@ Whenever a new version of the specification is released, a new version of the os
 
 The Git repository typically remains unchanged from the latest release, but may diverge as incremental development takes place in preparation for an upcoming release. Any differences between the latest release and the main branch should be considered as non-authoritative previews of the next release.
 
-You may download the official schema in the [latest release](https://github.com/ossf/security-insights-spec/releases/latest). All releases can be monitored via GitHub Release. Major and minor releases may be communicated through OpenSSF communication channels.
+You may download the official schema in the [latest release](https://github.com/ossf/security-insights/releases/latest). All releases can be monitored via GitHub Release. Major and minor releases may be communicated through OpenSSF communication channels.
 
 A changelog is maintained, detailing all changes made in each release (major, minor, or patch). The changelog includes a proper tag, a summary of changes for each version, and references to pull requests, issues, or discussions related to the changes.
 
@@ -165,9 +165,9 @@ A changelog is maintained, detailing all changes made in each release (major, mi
 
 More complex projects will want to take advantage of the `header.project-si-source` value to allow for multiple repositories to reference a shared location for project data.
 
-See the [multi-repository examples](https://github.com/ossf/security-insights-spec/tree/main/examples) for details:
-- [example-multi-repository-project.yml](https://github.com/ossf/security-insights-spec/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
-- [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights-spec/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
+See the [multi-repository examples](https://github.com/ossf/security-insights/tree/main/examples) for details:
+- [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
+- [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
 
 ### How often should I update my security-insights.yml file?
 
@@ -188,11 +188,11 @@ As the adoption of Security Insights grows, so does the opportunity to automatic
 
 The specification is maintained by the [Security Insights maintainers](MAINTAINERS.md) according to the [governance documentation](GOVERNANCE.md).
 
-Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights-spec/issues).
+Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights/issues).
 
 **Get Involved:**
 - **Slack**: Join the [OpenSSF Security Insights channel](https://openssf.slack.com/messages/security_insights/)
-- **GitHub**: Contribute at [ossf/security-insights-spec](https://github.com/ossf/security-insights-spec)
+- **GitHub**: Contribute at [ossf/security-insights](https://github.com/ossf/security-insights)
 - **Email**: Subscribe to [openssf-sig-security-insights@lists.openssf.org](mailto:openssf-sig-security-insights+subscribe@lists.openssf.org)
 
 ### How are changes to the specification proposed?
@@ -200,7 +200,7 @@ Discussion and feedback should take place in [GitHub Issues](https://github.com/
 We ask that you follow the [Security Insights Enhancement Proposal](GOVERNANCE.md#security-insights-enhancement-proposals) process to explore potential changes to the specification.
 
 For major releases, the procedure includes:
-- Discuss and propose the changes through open-source project communication channels (GitHub repo [ossf/security-insights-spec](https://github.com/ossf/security-insights-spec), OpenSSF Slack channels [#wg_metrics_and_metadata](https://openssf.slack.com/archives/C01A50B978T) and [#security_insights](https://openssf.slack.com/archives/C04BB493NET))
+- Discuss and propose the changes through open-source project communication channels (GitHub repo [ossf/security-insights](https://github.com/ossf/security-insights), OpenSSF Slack channels [#wg_metrics_and_metadata](https://openssf.slack.com/archives/C01A50B978T) and [#security_insights](https://openssf.slack.com/archives/C04BB493NET))
 - Conduct a review and discussion among community, and OpenSSF working groups
 - Update the project with proposed changes, and update the changelog
 - Release the updates through GitHub Release

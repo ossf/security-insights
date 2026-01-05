@@ -4,12 +4,10 @@ title: Maintainers
 nav-title: Maintainers
 ---
 
-# Maintainers
-
-This following are current maintainers of the specification. 
+This following are current maintainers of the specification.
 
 - Eddie Knight (@eddie-knight), Sonatype
-- Jason Meridth (@jmeridth), GitHub
+- Jason Meridth (@jmeridth), Chainguard
 
 ## Emeritus Maintainers
 

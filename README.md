@@ -30,15 +30,15 @@ Projects adopting the specification in a single repository should be able to get
 
 **Getting Started:**
 1. Review the [Schema Documentation](docs/schema.md) to understand available fields
-2. Start with the [minimum example](https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml)
+2. Start with the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml)
 3. Place your `security-insights.yml` file in the root of your repository or in your source forge directory (e.g. `.github/` or `.gitlab/`) to support automated detection
-4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights-spec/blob/main/schema.cue)
+4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights/blob/main/schema.cue)
 
 **Multi-Repository Projects:**
 
 More complex projects will want to take advantage of the `header.project-si-source` value to allow for multiple repositories to reference a shared location for project data.
 
-See the [multi-repository examples](https://github.com/ossf/security-insights-spec/tree/main/examples) for details.
+See the [multi-repository examples](https://github.com/ossf/security-insights/tree/main/examples) for details.
 
 **Ongoing Maintenance:**
 As your project evolves, keep your `security-insights.yml` file up to date. Consider scheduling periodic reminders (every 1, 3, or 6 months) to ensure the information remains accurate.
@@ -101,17 +101,18 @@ The module is published to the CUE registry at `registry.cue.works/github.com/os
 
 - **[Schema Documentation](docs/schema.md)** - Complete reference for all fields in the specification
 - **[Publishing Guide](docs/PUBLISHING.md)** - Instructions for publishing the CUE module to the registry
-- **[Examples](https://github.com/ossf/security-insights-spec/tree/main/examples)** - Example files for different use cases:
-  - [example-minimum.yml](https://github.com/ossf/security-insights-spec/blob/main/examples/example-minimum.yml) - Minimal required fields
-  - [example-full.yml](https://github.com/ossf/security-insights-spec/blob/main/examples/example-full.yml) - All possible fields
-  - [example-multi-repository-project.yml](https://github.com/ossf/security-insights-spec/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
-  - [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights-spec/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
+- **[Examples](https://github.com/ossf/security-insights/tree/main/examples)** - Example files for different use cases:
+  - [example-minimum.yml](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) - Minimal required fields
+  - [example-full.yml](https://github.com/ossf/security-insights/blob/main/examples/example-full.yml) - All possible fields
+  - [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
+  - [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
+- **[Publishing Guide](docs/PUBLISHING.md)** - Instructions for publishing the CUE module to the registry
 
 ## Releases
 
 The Git repository typically remains unchanged from the latest release, but may diverge as incremental development takes place in preparation for an upcoming release. Any differences between the latest release and the main branch should be considered as non-authoritative previews of the next release.
 
-You may download the official schema in the [latest release](https://github.com/ossf/security-insights-spec/releases/latest).
+You may download the official schema in the [latest release](https://github.com/ossf/security-insights/releases/latest).
 
 ## Tooling Ecosystem
 
@@ -124,12 +125,12 @@ As the adoption of Security Insights grows, so does the opportunity to automatic
 
 ## Contributing
 
-The specification is maintained by the [Security Insights maintainers](https://github.com/ossf/security-insights-spec/blob/main/docs/MAINTAINERS.md) according to the [governance documentation](https://github.com/ossf/security-insights-spec/blob/main/docs/GOVERNANCE.md).
+The specification is maintained by the [Security Insights maintainers](https://github.com/ossf/security-insights/blob/main/docs/MAINTAINERS.md) according to the [governance documentation](https://github.com/ossf/security-insights/blob/main/docs/GOVERNANCE.md).
 
-Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights-spec/issues). We ask that you follow the [Security Insights Enhancement Proposal](https://github.com/ossf/security-insights-spec/blob/main/docs/GOVERNANCE.md#security-insights-enhancement-proposals) process to explore potential changes to the specification.
+Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights/issues). We ask that you follow the [Security Insights Enhancement Proposal](https://github.com/ossf/security-insights/blob/main/docs/GOVERNANCE.md#security-insights-enhancement-proposals) process to explore potential changes to the specification.
 
 ## Get Involved
 
 - **Slack**: Join the [OpenSSF Security Insights channel](https://openssf.slack.com/messages/security_insights/)
-- **GitHub**: Contribute at [ossf/security-insights-spec](https://github.com/ossf/security-insights-spec)
+- **GitHub**: Contribute at [ossf/security-insights](https://github.com/ossf/security-insights)
 

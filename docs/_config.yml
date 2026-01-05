@@ -61,7 +61,7 @@ navigation:
       - path: MAINTAINERS.md
 
 # GitHub metadata
-repository: ossf/security-insights-spec
+repository: ossf/security-insights
 github:
   is_project_page: true
 
