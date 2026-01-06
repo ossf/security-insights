@@ -1,0 +1,39 @@
+# Anti-example: Invalid field types
+# This file is intentionally malformed - fields have wrong types
+# Expected error: Type mismatches (e.g., string instead of bool, number instead of string)
+
+header:
+  schema-version: "2.2.0"
+  last-updated: "2025-01-15"
+  last-reviewed: "2025-01-15"
+  url: https://example.com/security-insights.yml
+
+project:
+  name: 12345  # Invalid: should be string, not number
+  administrators:
+    - name: Jane Doe
+      primary: "yes"  # Invalid: should be bool, not string
+  repositories:
+    - name: example-repo
+      url: https://github.com/example/example-repo
+      comment: Main repository
+  vulnerability-reporting:
+    reports-accepted: "true"  # Invalid: should be bool, not string
+    bug-bounty-available: 0  # Invalid: should be bool, not number
+
+repository:
+  url: https://github.com/example/example-repo
+  status: active
+  accepts-change-request: "yes"  # Invalid: should be bool
+  accepts-automated-change-request: 1  # Invalid: should be bool
+  core-team:
+    - name: Jane Doe
+      primary: true
+  license:
+    url: https://github.com/example/example-repo/blob/main/LICENSE
+    expression: MIT
+  security:
+    assessments:
+      self:
+        comment: Self-assessment completed
+

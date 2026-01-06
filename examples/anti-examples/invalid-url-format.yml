@@ -1,0 +1,24 @@
+# Anti-example: Invalid URL format
+# This file is intentionally malformed - URLs don't match the required pattern
+# Expected error: URLs must match pattern ^https?://[^\s]+$
+
+header:
+  schema-version: "2.2.0"
+  last-updated: "2025-01-15"
+  last-reviewed: "2025-01-15"
+  url: "not-a-valid-url"  # Invalid: not a proper URL
+
+project:
+  name: Example Project
+  homepage: "ftp://example.com"  # Invalid: not http/https
+  administrators:
+    - name: Jane Doe
+      primary: true
+  repositories:
+    - name: example-repo
+      url: "invalid url with spaces"  # Invalid: contains spaces
+      comment: Main repository
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+
