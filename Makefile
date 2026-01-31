@@ -24,7 +24,7 @@ cuegen:
 
 genopenapi:
 	@echo "  >  Converting CUE schema to OpenAPI ..."
-	@cd cmd/cue2openapi && go run . -schema ../../spec/schema.cue -output ../../openapi.yaml
+	@cd cmd/cue2openapi && go run . -schema ../../spec -output ../../openapi.yaml -root SecurityInsights -version "$$(cat ../../VERSION)"
 	@echo "  >  OpenAPI schema generation complete!"
 
 genindex:
@@ -43,7 +43,7 @@ genindex:
 
 gendocs: genopenapi
 	@echo "  >  Generating markdown from OpenAPI ..."
-	@cd cmd/openapi2md && go run . -input ../../openapi.yaml -output ../../spec
+	@cd cmd/openapi2md && go run . -input ../../openapi.yaml -output ../../spec -roots SecurityInsights
 	@echo "  >  Copying schema.md to docs/ for website ..."
 	@{ \
 		echo "---"; \

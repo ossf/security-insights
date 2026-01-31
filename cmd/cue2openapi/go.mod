@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	cuelang.org/go v0.7.0
-	gopkg.in/yaml.v3 v3.0.1
+	github.com/goccy/go-yaml v1.19.2
 )
 
 require (
@@ -19,4 +19,5 @@ require (
 	github.com/protocolbuffers/txtpbfmt v0.0.0-20230328191034-3462fbc510c0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
