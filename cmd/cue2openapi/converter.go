@@ -1,14 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"sort"
 	"strings"
 
 	"cuelang.org/go/cue/ast"
+	"cuelang.org/go/cue/load"
 	"cuelang.org/go/cue/token"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 )
+
+// ConvertOpts configures CUE-to-OpenAPI conversion.
+type ConvertOpts struct {
+	ManifestPath string // If set, write schema→file manifest JSON here
+	Root         string // Optional #Name whose comment sets Info.Description
+	Version      string // Override version (default: VERSION file or "unknown")
+	Title        string // OpenAPI info title (default: "Security Insights")
+}
 
 type OpenAPISpec struct {
 	OpenAPI    string            `yaml:"openapi" json:"openapi"`
@@ -37,64 +49,146 @@ type SchemaInfo struct {
 	Ref         string                 `yaml:"$ref,omitempty" json:"$ref,omitempty"`
 }
 
-func readVersion() string {
-	path := "../../VERSION"
-
+func readVersion(schemaDir string) string {
+	path := filepath.Join(schemaDir, "VERSION")
 	if data, err := os.ReadFile(path); err == nil {
 		version := strings.TrimSpace(string(data))
 		if version != "" {
 			return version
 		}
 	}
-
-	return "unknown version"
+	return "unknown"
 }
 
-func parseCUEToOpenAPI(file *ast.File) *OpenAPISpec {
-	version := readVersion()
+func convertCUEToOpenAPI(schemaDir, outputPath string, opts ConvertOpts) error {
+	if !filepath.IsAbs(schemaDir) {
+		wd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get working directory: %w", err)
+		}
+		schemaDir = filepath.Join(wd, schemaDir)
+	}
+
+	insts := load.Instances([]string{"."}, &load.Config{Dir: schemaDir})
+	if len(insts) == 0 || insts[0].Err != nil {
+		err := error(nil)
+		if len(insts) > 0 {
+			err = insts[0].Err
+		}
+		return fmt.Errorf("failed to load CUE package: %v", err)
+	}
+
+	version := opts.Version
+	if version == "" {
+		version = readVersion(schemaDir)
+	}
+	title := opts.Title
+	if title == "" {
+		title = "Security Insights"
+	}
+
 	spec := &OpenAPISpec{
 		OpenAPI: "3.0.3",
 		Info: OpenAPIInfo{
-			Title:   "Security Insights Specification",
-			Version: version,
+			Title:       title,
+			Version:     version,
+			Description: "Security Insights schema definitions",
 		},
 		Components: OpenAPIComponents{
 			Schemas: make(map[string]interface{}),
 		},
 	}
 
-	// Extract root type description
-	var rootDescription string
+	seen := make(map[string]bool)
+	manifest := make(map[string][]string) // filename → schema names
+	files := insts[0].Files
+	names := make([]string, 0, len(files))
+	byName := make(map[string]*ast.File)
+	for _, f := range files {
+		name := "<no filename>"
+		if f.Filename != "" {
+			name = filepath.Base(f.Filename)
+		}
+		names = append(names, name)
+		byName[name] = f
+	}
+	sort.Strings(names)
+
+	for _, name := range names {
+		if name == "<no filename>" {
+			continue
+		}
+		f := byName[name]
+		rootDesc, typeNames := parseFile(f, spec, seen, opts.Root)
+		if rootDesc != "" && opts.Root != "" {
+			spec.Info.Description = rootDesc
+		}
+		if len(typeNames) > 0 {
+			manifest[name] = typeNames
+		}
+	}
+
+	if err := writeOpenAPISpec(spec, outputPath); err != nil {
+		return err
+	}
+	if opts.ManifestPath != "" {
+		if err := writeManifest(manifest, opts.ManifestPath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeManifest(manifest map[string][]string, path string) error {
+	keys := make([]string, 0, len(manifest))
+	for k := range manifest {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	ordered := make(map[string][]string, len(manifest))
+	for _, k := range keys {
+		ordered[k] = manifest[k]
+	}
+	data, err := json.MarshalIndent(ordered, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal manifest: %w", err)
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
+// parseFile processes a single CUE file and merges definitions into spec.
+// It returns the root type description (if opts.Root matches) and the list of type names added.
+func parseFile(file *ast.File, spec *OpenAPISpec, seen map[string]bool, rootName string) (rootDescription string, typeNames []string) {
 	for _, decl := range file.Decls {
-		if field, ok := decl.(*ast.Field); ok {
-			if ident, ok := field.Label.(*ast.Ident); ok && ident.Name == "#SecurityInsights" {
-				if field.Comments() != nil {
-					for _, cg := range field.Comments() {
-						for _, c := range cg.List {
-							if c.Text != "" {
-								rootDescription = extractComment(c.Text)
-								break
-							}
+		field, ok := decl.(*ast.Field)
+		if !ok {
+			continue
+		}
+		ident, ok := field.Label.(*ast.Ident)
+		if !ok || !strings.HasPrefix(ident.Name, "#") {
+			continue
+		}
+		typeName := strings.TrimPrefix(ident.Name, "#")
+		if rootName != "" && ident.Name == "#"+rootName {
+			if field.Comments() != nil {
+				for _, cg := range field.Comments() {
+					for _, c := range cg.List {
+						if c.Text != "" {
+							rootDescription = extractComment(c.Text)
+							break
 						}
 					}
 				}
-				if rootDescription != "" {
-					spec.Info.Description = rootDescription
-				}
-				break
 			}
 		}
-	}
-
-	// Walk through all declarations to find type definitions
-	for _, decl := range file.Decls {
-		switch x := decl.(type) {
-		case *ast.Field:
-			parseDefinitionField(x, spec)
+		if seen[typeName] {
+			continue
 		}
+		seen[typeName] = true
+		parseDefinitionField(field, spec)
+		typeNames = append(typeNames, typeName)
 	}
-
-	return spec
+	return rootDescription, typeNames
 }
 
 func parseDefinitionField(field *ast.Field, spec *OpenAPISpec) {
