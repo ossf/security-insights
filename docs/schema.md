@@ -137,6 +137,7 @@ the project's documentation resources
 Optional:
 
 - `code-of-conduct`
+- `design`
 - `detailed-guide`
 - `quickstart-guide`
 - `release-process`
@@ -148,6 +149,14 @@ Optional:
 #### `project.documentation.code-of-conduct` (optional)
 
 URL to the document outlining contributor and user conduct guidelines.
+
+- **Type**: [URL]
+
+---
+
+#### `project.documentation.design` (optional)
+
+URL to design documents such as architecture or design decisions.
 
 - **Type**: [URL]
 
