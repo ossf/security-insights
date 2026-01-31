@@ -137,6 +137,9 @@ import (
 
 // ProjectDocumentation contains links to various documents related to the project, including detailed guides, code of conduct, quickstart guides, release processes, support policies, and signature verification.
 #ProjectDocumentation: {
+	// URL to design documentation for this project.
+	design?: #URL go(Design,type=*URL)
+
 	// URL to more extensive or advanced documentation.
 	"detailed-guide"?: #URL @go(DetailedGuide,type=*URL)
 
