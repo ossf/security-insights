@@ -23,9 +23,27 @@
   --spacing-xl: 32px;
 }
 
+/* Expand the wrapper when it contains the editor */
+.wrapper:has(.editor-container) {
+  max-width: 80vw;
+}
+
+@media (min-width: 1800px) {
+  .wrapper:has(.editor-container) {
+    max-width: 1600px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .wrapper:has(.editor-container) {
+    max-width: 95vw;
+  }
+}
+
 /* Editor Container */
 .editor-container {
-  max-width: 1400px;
+  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
   padding: var(--spacing-md);
 }
@@ -371,7 +389,7 @@
 /* Editor Main Layout */
 .editor-main {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 30%;
   gap: var(--spacing-lg);
 }
 
