@@ -1,0 +1,892 @@
+/**
+ * Schema Fallback - Pre-parsed AST from spec/schema.cue
+ *
+ * This file contains a pre-parsed version of the Security Insights schema
+ * to be used when the runtime fetch fails (e.g., network issues, CORS problems).
+ *
+ * Generated from schema version 2.2.0
+ *
+ * To regenerate this file, run: make generate-schema-fallback
+ */
+
+const SchemaFallback = {
+  version: '2.2.0',
+  root: '#SecurityInsights',
+  types: {
+    '#URL': {
+      name: '#URL',
+      description: 'URL is a TLS URL',
+      kind: 'primitive',
+      type: 'string',
+      pattern: '^https?://[^\\s]+$'
+    },
+    '#Email': {
+      name: '#Email',
+      description: 'Email is a valid email address',
+      kind: 'primitive',
+      type: 'string',
+      pattern: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
+    },
+    '#Date': {
+      name: '#Date',
+      description: 'Date is a date in the format YYYY-MM-DD',
+      kind: 'primitive',
+      type: 'date',
+      format: '2006-01-02'
+    },
+    '#SchemaVersion': {
+      name: '#SchemaVersion',
+      description: 'SchemaVersion is a version string in the format X.Y.Z',
+      kind: 'primitive',
+      type: 'string',
+      pattern: '^[1-9]+\\.[0-9]+\\.[0-9]+$'
+    },
+    '#Assessment': {
+      name: '#Assessment',
+      description: 'Assessment represents the results of a security assessment, including comments, evidence, and date.',
+      kind: 'struct',
+      fields: {
+        'comment': {
+          name: 'comment',
+          optional: false,
+          description: 'Notes or commentary about the findings or purpose of the assessment.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'name': {
+          name: 'name',
+          optional: true,
+          description: 'The name or identifier of the assessment artifact.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'evidence': {
+          name: 'evidence',
+          optional: true,
+          description: 'The URL where the assessment report or artifact is located.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'date': {
+          name: 'date',
+          optional: true,
+          description: 'The date the assessment was published.',
+          kind: 'reference',
+          ref: '#Date'
+        }
+      }
+    },
+    '#Attestation': {
+      name: '#Attestation',
+      description: 'Attestation describes an in-toto attestation, including its name, location, predicate URI, and any additional comments.',
+      kind: 'struct',
+      fields: {
+        'name': {
+          name: 'name',
+          optional: false,
+          description: 'The name or identifier of the attestation.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'location': {
+          name: 'location',
+          optional: false,
+          description: 'A web location where the attestation can be found.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'predicate-uri': {
+          name: 'predicate-uri',
+          optional: false,
+          description: "A URI to a resource describing the attestation's predicate or specification.",
+          kind: 'primitive',
+          type: 'string'
+        },
+        'comment': {
+          name: 'comment',
+          optional: true,
+          description: 'Additional context or instructions for using the attestation.',
+          kind: 'primitive',
+          type: 'string'
+        }
+      }
+    },
+    '#Contact': {
+      name: '#Contact',
+      description: 'Contact represents a person or entity responsible for the project, including their name, affiliation, and contact details.',
+      kind: 'struct',
+      fields: {
+        'name': {
+          name: 'name',
+          optional: false,
+          description: "The contact person's name.",
+          kind: 'primitive',
+          type: 'string'
+        },
+        'primary': {
+          name: 'primary',
+          optional: false,
+          description: 'Indicates whether this admin is the first point of contact for inquiries. Only one entry should be marked as primary.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'affiliation': {
+          name: 'affiliation',
+          optional: true,
+          description: 'The entity with which the contact is affiliated, such as a school or employer.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'email': {
+          name: 'email',
+          optional: true,
+          description: 'A preferred email address to reach the contact.',
+          kind: 'reference',
+          ref: '#Email'
+        },
+        'social': {
+          name: 'social',
+          optional: true,
+          description: 'A social media handle or profile for the contact.',
+          kind: 'primitive',
+          type: 'string'
+        }
+      }
+    },
+    '#License': {
+      name: '#License',
+      description: '',
+      kind: 'struct',
+      fields: {
+        'url': {
+          name: 'url',
+          optional: false,
+          description: 'A web address where the license can be found.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'expression': {
+          name: 'expression',
+          optional: false,
+          description: 'The SPDX license expression for the license.',
+          kind: 'primitive',
+          type: 'string'
+        }
+      }
+    },
+    '#Link': {
+      name: '#Link',
+      description: '',
+      kind: 'struct',
+      fields: {
+        'uri': {
+          name: 'uri',
+          optional: false,
+          description: 'A link to a resource, not restricted to http/s.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'comment': {
+          name: 'comment',
+          optional: false,
+          description: 'Instructions or information about the link.',
+          kind: 'primitive',
+          type: 'string'
+        }
+      }
+    },
+    '#ProjectRepository': {
+      name: '#ProjectRepository',
+      description: 'The ProjectRepository object describes a repository that is part of a project, including its name, comment, and URL.',
+      kind: 'struct',
+      fields: {
+        'name': {
+          name: 'name',
+          optional: false,
+          description: 'The name or short label of the repository.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'comment': {
+          name: 'comment',
+          optional: false,
+          description: 'Explanation of the repository purpose or contents and its relation to the rest of the project.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'url': {
+          name: 'url',
+          optional: false,
+          description: 'The URL where the repository is hosted.',
+          kind: 'reference',
+          ref: '#URL'
+        }
+      }
+    },
+    '#SecurityInsights': {
+      name: '#SecurityInsights',
+      description: 'SecurityInsights defines a schema that projects can use to report information about their security in a machine-processable way.',
+      kind: 'struct',
+      fields: {
+        'header': {
+          name: 'header',
+          optional: false,
+          description: 'header captures high level metadata about the schema.',
+          kind: 'reference',
+          ref: '#Header'
+        },
+        'project': {
+          name: 'project',
+          optional: true,
+          description: 'project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details. This field is not required if header.project-si-source is supplied.',
+          kind: 'reference',
+          ref: '#Project'
+        },
+        'repository': {
+          name: 'repository',
+          optional: true,
+          description: 'repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture.',
+          kind: 'reference',
+          ref: '#Repository'
+        }
+      }
+    },
+    '#Header': {
+      name: '#Header',
+      description: 'The Header object captures high-level metadata about the schema.',
+      kind: 'struct',
+      fields: {
+        'last-reviewed': {
+          name: 'last-reviewed',
+          optional: false,
+          description: 'The date when the document or data was last reviewed.',
+          kind: 'reference',
+          ref: '#Date'
+        },
+        'last-updated': {
+          name: 'last-updated',
+          optional: false,
+          description: 'The date when the document or data was last updated.',
+          kind: 'reference',
+          ref: '#Date'
+        },
+        'schema-version': {
+          name: 'schema-version',
+          optional: false,
+          description: 'The version of the Security Insights schema being used.',
+          kind: 'reference',
+          ref: '#SchemaVersion'
+        },
+        'url': {
+          name: 'url',
+          optional: false,
+          description: 'The original URL for the current Security Insights file.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'comment': {
+          name: 'comment',
+          optional: true,
+          description: 'Additional information about the schema.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'project-si-source': {
+          name: 'project-si-source',
+          optional: true,
+          description: 'A URL to the security insights file that contains project information for this file to inherit.',
+          kind: 'reference',
+          ref: '#URL'
+        }
+      }
+    },
+    '#ProjectDocumentation': {
+      name: '#ProjectDocumentation',
+      description: 'ProjectDocumentation contains links to various documents related to the project.',
+      kind: 'struct',
+      fields: {
+        'design': {
+          name: 'design',
+          optional: true,
+          description: 'URL to design documentation for this project.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'detailed-guide': {
+          name: 'detailed-guide',
+          optional: true,
+          description: 'URL to more extensive or advanced documentation.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'code-of-conduct': {
+          name: 'code-of-conduct',
+          optional: true,
+          description: 'URL to the document outlining contributor and user conduct guidelines.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'quickstart-guide': {
+          name: 'quickstart-guide',
+          optional: true,
+          description: 'URL to a concise guide to basic functionality for new users.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'release-process': {
+          name: 'release-process',
+          optional: true,
+          description: 'URL describing how releases are planned, prepared, and published.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'support-policy': {
+          name: 'support-policy',
+          optional: true,
+          description: 'URL to documentation describing how releases are supported.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'signature-verification': {
+          name: 'signature-verification',
+          optional: true,
+          description: 'URL to documentation explaining how to verify digital signatures on assets.',
+          kind: 'reference',
+          ref: '#URL'
+        }
+      }
+    },
+    '#VulnerabilityReporting': {
+      name: '#VulnerabilityReporting',
+      description: 'VulnerabilityReporting describes how security vulnerabilities can be reported and how they are handled by the project.',
+      kind: 'struct',
+      fields: {
+        'reports-accepted': {
+          name: 'reports-accepted',
+          optional: false,
+          description: 'Indicates whether this project currently accepts vulnerability reports.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'bug-bounty-available': {
+          name: 'bug-bounty-available',
+          optional: false,
+          description: 'Specifies whether a bug bounty program is offered.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'bug-bounty-program': {
+          name: 'bug-bounty-program',
+          optional: true,
+          description: 'Path to a page providing details about any bug bounty program.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'contact': {
+          name: 'contact',
+          optional: true,
+          description: 'Point of contact for reporting vulnerabilities. This may be a single person or a mailgroup.',
+          kind: 'reference',
+          ref: '#Contact'
+        },
+        'comment': {
+          name: 'comment',
+          optional: true,
+          description: 'Additional comments or instructions about vulnerability reporting.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'policy': {
+          name: 'policy',
+          optional: true,
+          description: 'Path to a page containing rules for security-related disclosures.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'pgp-key': {
+          name: 'pgp-key',
+          optional: true,
+          description: 'The PGP public key for secure communication.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'in-scope': {
+          name: 'in-scope',
+          optional: true,
+          description: 'A list of issues or components that are covered by the vulnerability reporting process.',
+          kind: 'array',
+          itemType: { kind: 'primitive', type: 'string' },
+          minItems: 0
+        },
+        'out-of-scope': {
+          name: 'out-of-scope',
+          optional: true,
+          description: 'A list of issues or components not covered by the vulnerability reporting process.',
+          kind: 'array',
+          itemType: { kind: 'primitive', type: 'string' },
+          minItems: 0
+        }
+      }
+    },
+    '#Project': {
+      name: '#Project',
+      description: 'Project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details.',
+      kind: 'struct',
+      fields: {
+        'name': {
+          name: 'name',
+          optional: false,
+          description: 'The name of the project.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'homepage': {
+          name: 'homepage',
+          optional: true,
+          description: "A path to the project's landing page.",
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'roadmap': {
+          name: 'roadmap',
+          optional: true,
+          description: 'A URL pointing to a roadmap or schedule for planned features and releases.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'funding': {
+          name: 'funding',
+          optional: true,
+          description: 'A URL to information about sponsorships, donations, or other funding topics.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'steward': {
+          name: 'steward',
+          optional: true,
+          description: 'This field is to communicate the relationship between the project and a supporting legal entity.',
+          kind: 'reference',
+          ref: '#Link'
+        },
+        'administrators': {
+          name: 'administrators',
+          optional: false,
+          description: "A list of 1 or more individuals who have administrative access to the project's resources.",
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#Contact' },
+          minItems: 1
+        },
+        'repositories': {
+          name: 'repositories',
+          optional: false,
+          description: 'A list of 1 or more repositories that are part of this project.',
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#ProjectRepository' },
+          minItems: 1
+        },
+        'vulnerability-reporting': {
+          name: 'vulnerability-reporting',
+          optional: false,
+          description: 'An object describing how security vulnerabilities can be reported and how they are handled by the project.',
+          kind: 'reference',
+          ref: '#VulnerabilityReporting'
+        },
+        'documentation': {
+          name: 'documentation',
+          optional: true,
+          description: "the project's documentation resources",
+          kind: 'reference',
+          ref: '#ProjectDocumentation'
+        }
+      }
+    },
+    '#SecurityToolIntegration': {
+      name: '#SecurityToolIntegration',
+      description: 'SecurityToolIntegration describes how a security tool is integrated into the repository.',
+      kind: 'struct',
+      fields: {
+        'adhoc': {
+          name: 'adhoc',
+          optional: false,
+          description: 'Indicates whether the tool is used in a scheduled process or supports on-demand.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'ci': {
+          name: 'ci',
+          optional: false,
+          description: 'Indicates whether the tool is used in the continuous integration process.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'release': {
+          name: 'release',
+          optional: false,
+          description: 'Indicates whether the tool is run before or during the release process.',
+          kind: 'primitive',
+          type: 'bool'
+        }
+      }
+    },
+    '#SecurityToolResults': {
+      name: '#SecurityToolResults',
+      description: 'SecurityToolResults describes the results of security scans.',
+      kind: 'struct',
+      fields: {
+        'adhoc': {
+          name: 'adhoc',
+          optional: true,
+          description: 'Results of scheduled or on-demand security scans.',
+          kind: 'reference',
+          ref: '#Attestation'
+        },
+        'ci': {
+          name: 'ci',
+          optional: true,
+          description: 'Results of security scans run in the continuous integration process.',
+          kind: 'reference',
+          ref: '#Attestation'
+        },
+        'release': {
+          name: 'release',
+          optional: true,
+          description: 'Results of security scans run in the build and release process.',
+          kind: 'reference',
+          ref: '#Attestation'
+        }
+      }
+    },
+    '#SecurityTool': {
+      name: '#SecurityTool',
+      description: 'SecurityTool describes a security-related tool used in the repository.',
+      kind: 'struct',
+      fields: {
+        'name': {
+          name: 'name',
+          optional: false,
+          description: 'The name of the tool.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'type': {
+          name: 'type',
+          optional: false,
+          description: 'The general category or type of the tool.',
+          kind: 'enum',
+          values: ['fuzzing', 'container', 'secret', 'SCA', 'SAST', 'other']
+        },
+        'version': {
+          name: 'version',
+          optional: true,
+          description: 'The version of the tool that is used.',
+          kind: 'primitive',
+          type: 'string'
+        },
+        'comment': {
+          name: 'comment',
+          optional: true,
+          description: "Additional notes about the tool's usage or configuration.",
+          kind: 'primitive',
+          type: 'string'
+        },
+        'rulesets': {
+          name: 'rulesets',
+          optional: false,
+          description: 'The set of rules or configurations applied by the tool.',
+          kind: 'disjunction',
+          options: [
+            { kind: 'array-literal', values: ['default'] },
+            { kind: 'array', itemType: { kind: 'primitive', type: 'string' }, minItems: 0 }
+          ]
+        },
+        'integration': {
+          name: 'integration',
+          optional: false,
+          description: 'An object describing how the tool is integrated with the project.',
+          kind: 'reference',
+          ref: '#SecurityToolIntegration'
+        },
+        'results': {
+          name: 'results',
+          optional: false,
+          description: '',
+          kind: 'reference',
+          ref: '#SecurityToolResults'
+        }
+      }
+    },
+    '#SecurityPosture': {
+      name: '#SecurityPosture',
+      description: 'SecurityPosture describes the security posture of the repository.',
+      kind: 'struct',
+      fields: {
+        'assessments': {
+          name: 'assessments',
+          optional: false,
+          description: 'An object describing security assessments for the repository.',
+          kind: 'struct',
+          fields: {
+            'self': {
+              name: 'self',
+              optional: false,
+              description: "Results of the contributor team's assessment of software produced by this repository.",
+              kind: 'reference',
+              ref: '#Assessment'
+            },
+            'third-party': {
+              name: 'third-party',
+              optional: true,
+              description: 'Results of third-party assessments of software produced by this repository.',
+              kind: 'array',
+              itemType: { kind: 'reference', ref: '#Assessment' },
+              minItems: 0
+            }
+          }
+        },
+        'champions': {
+          name: 'champions',
+          optional: true,
+          description: 'A list of core team members who advocate for continuous improvement of security practices.',
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#Contact' },
+          minItems: 0
+        },
+        'tools': {
+          name: 'tools',
+          optional: true,
+          description: 'A list of objects describing security-related tools used in the repository.',
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#SecurityTool' },
+          minItems: 0
+        }
+      }
+    },
+    '#RepositoryDocumentation': {
+      name: '#RepositoryDocumentation',
+      description: 'RepositoryDocumentation contains links to various documents related to the repository.',
+      kind: 'struct',
+      fields: {
+        'contributing-guide': {
+          name: 'contributing-guide',
+          optional: true,
+          description: 'URL to a document outlining the process for contributing to the repository.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'dependency-management-policy': {
+          name: 'dependency-management-policy',
+          optional: true,
+          description: 'URL to a document outlining the process for managing dependencies in the repository.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'governance': {
+          name: 'governance',
+          optional: true,
+          description: 'URL to any governance documents regarding roles, responsibilities, processes, and decision-making.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'review-policy': {
+          name: 'review-policy',
+          optional: true,
+          description: 'URL to a document outlining the process for reviewing changes to the repository.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'security-policy': {
+          name: 'security-policy',
+          optional: true,
+          description: "URL with information about the repository's security, including the policy for reporting security vulnerabilities.",
+          kind: 'reference',
+          ref: '#URL'
+        }
+      }
+    },
+    '#ReleaseDetails': {
+      name: '#ReleaseDetails',
+      description: 'ReleaseDetails describes the release process for the repository.',
+      kind: 'struct',
+      fields: {
+        'automated-pipeline': {
+          name: 'automated-pipeline',
+          optional: false,
+          description: 'Indicates if the repository uses an automated release pipeline.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'distribution-points': {
+          name: 'distribution-points',
+          optional: false,
+          description: "A list of 1 or more links describing where the repository's releases are distributed.",
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#Link' },
+          minItems: 1
+        },
+        'changelog': {
+          name: 'changelog',
+          optional: true,
+          description: "A URL to the repository's release changelog.",
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'license': {
+          name: 'license',
+          optional: true,
+          description: 'Describes the license details specifically for releases.',
+          kind: 'reference',
+          ref: '#License'
+        },
+        'attestations': {
+          name: 'attestations',
+          optional: true,
+          description: "List of attestations for the repository's releases.",
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#Attestation' },
+          minItems: 0
+        }
+      }
+    },
+    '#Repository': {
+      name: '#Repository',
+      description: 'The Repository object specifies repository-related configurations.',
+      kind: 'struct',
+      fields: {
+        'status': {
+          name: 'status',
+          optional: false,
+          description: "Indicates the repository's current Repo Status.",
+          kind: 'enum',
+          values: ['active', 'abandoned', 'concept', 'inactive', 'moved', 'suspended', 'unsupported', 'WIP']
+        },
+        'url': {
+          name: 'url',
+          optional: false,
+          description: 'The main URL for this repository.',
+          kind: 'reference',
+          ref: '#URL'
+        },
+        'accepts-change-request': {
+          name: 'accepts-change-request',
+          optional: false,
+          description: 'Indicates whether the repository currently accepts any change requests.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'accepts-automated-change-request': {
+          name: 'accepts-automated-change-request',
+          optional: false,
+          description: 'Indicates whether the repository accepts automated or machine-generated change requests.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'bug-fixes-only': {
+          name: 'bug-fixes-only',
+          optional: true,
+          description: 'Specifies whether the repository only accepts bug-fixes and not feature work.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'no-third-party-packages': {
+          name: 'no-third-party-packages',
+          optional: true,
+          description: 'Indicates whether the repository universally avoids package dependencies from outside of the project.',
+          kind: 'primitive',
+          type: 'bool'
+        },
+        'core-team': {
+          name: 'core-team',
+          optional: false,
+          description: 'A list of 1 or more core team members for this repository.',
+          kind: 'array',
+          itemType: { kind: 'reference', ref: '#Contact' },
+          minItems: 1
+        },
+        'license': {
+          name: 'license',
+          optional: false,
+          description: 'The license information for this repository.',
+          kind: 'reference',
+          ref: '#License'
+        },
+        'security': {
+          name: 'security',
+          optional: false,
+          description: 'An object describing security-related artifacts, champions, and tooling for the repository.',
+          kind: 'reference',
+          ref: '#SecurityPosture'
+        },
+        'documentation': {
+          name: 'documentation',
+          optional: true,
+          description: 'Documentation links for the repository.',
+          kind: 'reference',
+          ref: '#RepositoryDocumentation'
+        },
+        'release': {
+          name: 'release',
+          optional: true,
+          description: 'Release describes the release process for the repository.',
+          kind: 'reference',
+          ref: '#ReleaseDetails'
+        }
+      }
+    }
+  },
+
+  // Helper method to get a type definition
+  getType(name) {
+    return this.types[name];
+  },
+
+  // Helper to resolve a type reference to its full definition
+  resolveType(typeValue) {
+    if (typeValue && typeValue.kind === 'reference') {
+      return this.types[typeValue.ref];
+    }
+    return typeValue;
+  },
+
+  // Get all enum values for a field
+  getEnumValues(typeValue) {
+    if (!typeValue) return null;
+    if (typeValue.kind === 'enum') {
+      return typeValue.values;
+    }
+    if (typeValue.kind === 'disjunction') {
+      const values = [];
+      for (const opt of typeValue.options) {
+        if (opt.kind === 'literal' && opt.type === 'string') {
+          values.push(opt.value);
+        }
+      }
+      return values.length > 0 ? values : null;
+    }
+    return null;
+  },
+
+  // Check if a field is required
+  isRequired(field) {
+    return field && !field.optional;
+  },
+
+  // Get validation pattern for a type
+  getPattern(typeValue) {
+    if (!typeValue) return null;
+    if (typeValue.kind === 'primitive' && typeValue.pattern) {
+      return typeValue.pattern;
+    }
+    if (typeValue.kind === 'reference') {
+      const resolved = this.types[typeValue.ref];
+      if (resolved && resolved.pattern) {
+        return resolved.pattern;
+      }
+    }
+    return null;
+  }
+};
+
+// Export for module systems
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SchemaFallback;
+}
