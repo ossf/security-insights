@@ -1,4 +1,4 @@
-# Security Insights _(v2.2.0-dev)_
+# Security Insights _(v2.2.0)_
 
 **Table of Contents**
 
