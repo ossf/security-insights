@@ -1,7 +1,7 @@
 lintcue:
 	@echo "  >  Linting CUE schema ..."
 	@cd spec
-	@cue vet ./spec --all-errors --verbose
+	@cue vet ./spec --all-errors
 
 lintyml:
 	@echo "  >  Linting YAML files ..."
