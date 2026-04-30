@@ -189,6 +189,24 @@ import (
 	"out-of-scope"?: [...string] @go(OutOfScope,type=*URL)
 }
 
+
+// AgentAssistedProduction describes whether this project uses automated
+// agents in production workflows and, optionally, where users can read
+// the project's governance declaration for those workflows.
+#AgentAssistedProduction: {
+
+	// Indicates whether the project uses automated agents in production
+	// workflows such as code generation, review, release preparation,
+	// triage, policy checks, or operational actions.
+	used: bool
+
+	// Optional URL to a project-maintained governance declaration. The
+	// declaration may describe review requirements, approved agent use
+	// cases, logging, attestations, receipts, policies, or other controls.
+	// Security Insights does not prescribe the declaration's format.
+	"governance-declaration"?: #URL @go(GovernanceDeclaration,type=*URL)
+}
+
 // Project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details.
 #Project: {
 
@@ -206,6 +224,9 @@ import (
 
 	// This field is to communicate the relationship between the project and "a legal person, other than a manufacturer, that has the purpose or objective of systematically providing support on a sustained basis for the development of specific products with digital elements, qualifying as free and open-source software and intended for commercial activities, and that ensures the viability of those products" This definition is drawn from the [European Union Cyber Resilience Act, Article 3](https://eur-lex.europa.eu/eli/reg/2024/2847/oj/eng#art_3).
 	steward?: #Link @go(Steward,type=*Link)
+
+	// Optional disclosure of agent-assisted production use at the project level.
+	"agent-assisted-production"?: #AgentAssistedProduction @go(AgentAssistedProduction,type=*AgentAssistedProduction)
 
 	// A list of 1 or more individuals who have administrative access to the project's resources.
 	administrators: [#Contact, ...] @go(,type=[]Contact)

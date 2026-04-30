@@ -1,0 +1,27 @@
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-04-30'
+  last-reviewed: '2026-04-30'
+  url: https://example.com/.github/security-insights.yml
+
+project:
+  name: Example Project
+  homepage: https://example.com
+  administrators:
+    - name: Example Security Team
+      email: security@example.com
+      primary: true
+  repositories:
+    - name: example-project
+      url: https://github.com/example/project
+      comment: Main project repository.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    contact:
+      name: Example Security Team
+      email: security@example.com
+      primary: true
+  agent-assisted-production:
+    used: true
+    governance-declaration: https://example.com/.well-known/agent-governance

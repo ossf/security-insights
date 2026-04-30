@@ -18,6 +18,9 @@ project:
     uri: https://example.com
     comment: |
       Some description of the relationship between this project and its steward.
+  agent-assisted-production:
+    used: true
+    governance-declaration: https://example.com/.well-known/agent-governance
   administrators:
     - name: Joe Dohn
       affiliation: Foo

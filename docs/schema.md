@@ -30,6 +30,18 @@ project describes the overall project, including basic info, documentation links
 
 repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture. This field is not required if `header.project-si-source` is supplied. This field is required if the file is intended for use as a parent security insights file with project information to be inherited by multiple repositories via their respective `header.project-si-source`.
 
+## #AgentAssistedProduction
+
+AgentAssistedProduction describes whether this project uses automated agents in production workflows and, optionally, where users can read the project's governance declaration for those workflows.
+
+`used` **boolean** _Required_
+
+Indicates whether the project uses automated agents in production workflows such as code generation, review, release preparation, triage, policy checks, or operational actions.
+
+`governance-declaration` **[URL](#url)**
+
+Optional URL to a project-maintained governance declaration. The declaration may describe review requirements, approved agent use cases, logging, attestations, receipts, policies, or other controls. Security Insights does not prescribe the declaration's format.
+
 ## #Assessment
 
 Assessment represents the results of a security assessment, including comments, evidence, and date.
@@ -149,6 +161,10 @@ Project describes the overall project, including basic info, documentation links
 `administrators` **array[[Contact](#contact)]** _Required_
 
 A list of 1 or more individuals who have administrative access to the project's resources.
+
+`agent-assisted-production` **[AgentAssistedProduction](#agentassistedproduction)**
+
+Optional disclosure of agent-assisted production use at the project level.
 
 `name` **string** _Required_
 
@@ -489,6 +505,7 @@ URL is a TLS URL
 ---
 
 
+[AgentAssistedProduction]: #agentassistedproduction
 [Header]: #header
 [Project]: #project
 [SchemaVersion]: #schemaversion
