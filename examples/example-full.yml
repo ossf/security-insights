@@ -60,7 +60,7 @@ project:
       Lorum ipsum...
 
 repository:
-  url: https://github.com/kubernetes/kubernetes
+  url: https://example.com/foobar/foo
   status: active
   bug-fixes-only: false
   accepts-change-request: true
