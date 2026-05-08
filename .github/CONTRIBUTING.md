@@ -22,7 +22,7 @@ Please adhere to our [Code of Conduct](https://github.com/ossf/.github/CODE_OF_C
 
 ## Licensing
 
-By contributing, you agree that your contributions will be licensed under the [project's license](LICENSE.md).
+By contributing, you agree that your contributions will be licensed under the [project's license](../LICENSE).
 
 ## Thanks!
 
