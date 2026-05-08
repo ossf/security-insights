@@ -2,7 +2,7 @@
 # This file would be stored in the https://example.com/foobar/foo repository
 # and addressable via https://example.com/foobar/foo/security-insights.yml
 header:
-  schema-version: 2.0.0
+  schema-version: 2.2.0
   last-updated: '2025-03-01'
   last-reviewed: '2025-04-01'
   url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
