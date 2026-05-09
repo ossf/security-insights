@@ -29,7 +29,7 @@ remote_theme: jekyll/minima
 minima:
    skin: classic
    nav_pages:
-     - index.md
+     - get-started.md
      - schema.md
      - FAQ.md
    show_excerpts: false
@@ -49,16 +49,17 @@ minima:
 
 # Navigation structure with groups
 navigation:
+  - name: Get Started
+    path: get-started.md
   - name: Schema
     path: schema.md
-  - name: About
-    children:
-      - path: index.md
-      - path: FAQ.md
+  - name: FAQ
+    path: FAQ.md
   - name: Governance
     children:
       - path: GOVERNANCE.md
       - path: MAINTAINERS.md
+      - path: versioning-policy.md
 
 # GitHub metadata
 repository: ossf/security-insights
@@ -81,5 +82,4 @@ exclude:
   - roadmap/
   - threat-model/
   - user-story.md
-  - versioning-policy.md
 

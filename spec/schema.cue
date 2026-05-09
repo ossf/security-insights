@@ -106,10 +106,10 @@ import (
 	// header captures high level metadata about the schema.
 	header: #Header
 
-	// project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details. This field is not required if `header.project-si-source` is supplied.
+	// project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details. Required for single-repository files and for the parent file in a multi-repository project. Omit this field in child files; they inherit it via `header.project-si-source`.
 	project?: #Project
 
-	// repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture. This field is not required if `header.project-si-source` is supplied. This field is required if the file is intended for use as a parent security insights file with project information to be inherited by multiple repositories via their respective `header.project-si-source`.
+	// repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture. Required for single-repository files and for child files in a multi-repository project (i.e. files that set `header.project-si-source`). Optional in a parent file when project-level information is the only thing the parent contributes.
 	repository?: #Repository
 }
 

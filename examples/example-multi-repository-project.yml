@@ -7,9 +7,11 @@ header:
   last-reviewed: '2025-04-01'
   url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
   comment: |
-    This file contains the minimum information for both project and repository.
-    It not required to include both a project and repository section if the project
-    section is intended to be inherited by repositories via header.project-si-source
+    This is the parent file for a multi-repository project: it contains the
+    project section, plus a repository section describing its own repository.
+    Other repositories in the project should publish child files (see
+    example-multi-repository-project-reuse.yml) that omit the project section
+    and set header.project-si-source to the raw URL of this file.
 
 project:
   name: FooBar
