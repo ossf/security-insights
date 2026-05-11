@@ -13,29 +13,16 @@ nav-title: FAQ
 
 ## What is Security Insights?
 
-Security Insights is a standardized YAML format that enables open source projects to self-report their security practices, policies, and processes. It provides a mechanism for projects to report information about their security in a machine-processable way, formatted as a YAML file to make it easy to read and edit by humans.
+Security Insights is a standardized YAML format that lets open source projects self-report their security practices, policies, and processes. It fills the gap between simplified solutions like `SECURITY.md` and comprehensive automated solutions like SBOMs — recording elements that must be self-asserted by the project itself.
 
-This information helps:
-- **Project maintainers** communicate their security posture clearly
-- **Security researchers** understand how to report vulnerabilities
-- **End users and organizations** evaluate the security of dependencies
-- **Automated tools** parse and analyze security information consistently
+It's intended to be useful for:
 
-The data tracked within this specification is intended to fill the gaps between simplified solutions such as `SECURITY.md` and comprehensive automated solutions such as SBOMs. In that gap lay elements that must be self-reported by projects to allow end-users to make informed security decisions.
-
----
-
-### Why does this specification exist?
-
-Security is important, and many potential users (final users, engineers, developers, or companies) might want to evaluate the security of a particular open-source project. There are many ways to evaluate the security of a project, including evaluating the code itself (statically or dynamically), the processes used, and/or the people involved (e.g., whether or not they know how to develop secure software).
-
-Some information can be determined automatically by tools, but determining information via tools is often imperfect. For example, many would want to know if a project uses an automated test suite, yet because there are so many different kinds of test suites & ways to invoke them, automated tools often fail to correctly identify whether or not automated tests are performed. It can be provided manually, but that must be done for each approach.
-
-This specification provides a mechanism for projects to report information about their security in a machine-processable way. It is formatted as a YAML file to make it easy to read and edit directly by people. It is expected that a first draft of the file would be created by automated tools, "wizards" that guide users through the answers, and linter tools that help users to check the YAML file schema. The file is then put under version control, provided to potential users, and updated as needed. The file's contents may then be extracted for a variety of different reasons (e.g., extracted into security evaluations, etc.).
+- **Project maintainers** communicating their security posture clearly
+- **Security researchers** finding how to report vulnerabilities
+- **End users and organizations** evaluating the security of dependencies
+- **Automated tools** parsing and analyzing security information consistently
 
 ### What problems does Security Insights solve?
-
-**SECURITY-INSIGHTS.yml** helps solve the following user stories:
 
 | AS A/AN | I WANT TO | SO THAT |
 |---|---|---|
@@ -53,115 +40,46 @@ This specification provides a mechanism for projects to report information about
 
 ### How do I get started as a project maintainer?
 
-Projects adopting the specification in a single repository should be able to get started and produce a useful `security-insights.yml` in about 30 minutes.
-
-**Getting Started:**
-1. Review the [Schema Documentation](schema.md) to understand available fields
-2. Start with the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml)
-3. Place your `security-insights.yml` file in the root of your repository or in your source forge directory (e.g. `.github/` or `.gitlab/`) to support automated detection
-4. Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights/blob/main/spec/schema.cue)
+See the [Get Started guide](get-started.md). It walks through both the single-repository and multi-repository layouts, with copyable examples and the validation command.
 
 ### Where should I place the security-insights.yml file?
 
-Place your `security-insights.yml` file in the root of your repository or in your source forge directory (e.g. `.github/` or `.gitlab/`) to support automated detection. Consumers of the `security-insights.yml` file(s) should look for it in these locations.
-
-### How do I validate my security-insights.yml file?
-
-Validate your file using [`cue vet`](https://cuelang.org/docs/introduction/installation/) against the [CUE schema](https://github.com/ossf/security-insights/blob/main/spec/schema.cue). You can also use linter tools that help users to check the YAML file schema.
+At the repository root (`security-insights.yml`) or in the source-forge directory (`.github/security-insights.yml`, `.gitlab/security-insights.yml`, etc.). Tools that consume the file look in these locations.
 
 ### What's the minimum required information?
 
-The minimum viable product (MVP) should provide the following information:
-- Procedure to report a vulnerability (security contact, Vulnerability Disclosure Policy (VDP))
-- Owners contacts
-
-See the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) for a complete reference.
-
-## Trust and Reliability
-
-### How much can tools trust this file?
-
-That is an issue ultimately decided by the tools that read this data. The format records assertions made by a project itself. These assertions may be obsolete or even maliciously false. Still, it provides additional information that otherwise would not be automatically accessible. Humans and tools that evaluate projects may want to report results both including and not including self-assertions, or assertions unverified by a trusted third party.
-
-### What if the information is outdated or incorrect?
-
-Consumers of the `security-insights.yml` file(s) provided by projects should assume the contents is only relative to the commit or release artifact it is associated with. As your project evolves, keep your `security-insights.yml` file up to date. Consider scheduling periodic reminders (every 1, 3, or 6 months) to ensure the information remains accurate.
-
-## Versioning and Releases
-
-### How is the specification versioned?
-
-The Security Insights Specification uses a semantic versioning (SemVer) scheme to indicate changes. The version number format is as follows:
-
-**Major.Minor.Patch**
-
-- **Major**: Incremented for significant changes. Ideally at most one per year.
-- **Minor**: Incremented for important changes and improvements. Ideally, at most four per year.
-- **Patch**: Incremented for minor changes, and typo fixes.
-
-### How often are new versions released?
-
-- **Major releases** (e.g., from `1.X.X` to `2.X.X`) signify significant changes that may require a substantial update to the Security Insights specification. Major releases may include major and important changes to the SECURITY INSIGHTS schema, or significant policy or procedure modifications.
-
-- **Minor releases** (e.g., from `1.1.X` to `1.2.X`) introduce changes and improvements that need to be properly released. Minor releases may include improvements, changes, or minor milestones to the SECURITY INSIGHTS schema.
-
-- **Patch releases** (e.g., from `1.1.0` to `1.1.1`) include minor fixes, typo corrections, or updates that do not introduce substantial changes. Patch releases may include typo corrections or language improvements.
-
-Whenever a new version of the specification is released, a new version of the ossf/si-tooling project should also be released.
-
-### Where can I find the latest release?
-
-The Git repository typically remains unchanged from the latest release, but may diverge as incremental development takes place in preparation for an upcoming release. Any differences between the latest release and the main branch should be considered as non-authoritative previews of the next release.
-
-You may download the official schema in the [latest release](https://github.com/ossf/security-insights/releases/latest). All releases can be monitored via GitHub Release. Major and minor releases may be communicated through OpenSSF communication channels.
-
-A changelog is maintained, detailing all changes made in each release (major, minor, or patch). The changelog includes a proper tag, a summary of changes for each version, and references to pull requests, issues, or discussions related to the changes.
-
-## Usage Questions
+At minimum, the file should let a reader contact a maintainer, find the vulnerability disclosure policy, and identify the repository's basic posture. The [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) is the canonical starting point — every field it shows is a reasonable default to fill in or drop.
 
 ### How do I handle multi-repository projects?
 
-More complex projects will want to take advantage of the `header.project-si-source` value to allow for multiple repositories to reference a shared location for project data.
+Publish a *parent* file containing the `project:` section in one repository, and a *child* file in each of the other repositories that sets `header.project-si-source` to the raw URL of the parent. Children inherit project-level data from the parent and only need to describe their own repository.
 
-See the [multi-repository examples](https://github.com/ossf/security-insights/tree/main/examples) for details:
-- [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
-- [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
+The [multi-repository path in the Get Started guide](get-started.md#multi-repository-path) covers the mechanics — including the raw-URL requirement that catches most first-time setups — and points at the parent and child example files.
 
-### How often should I update my security-insights.yml file?
+## Trust and Maintenance
 
-As your project evolves, keep your `security-insights.yml` file up to date. Consider scheduling periodic reminders (every 1, 3, or 6 months) to ensure the information remains accurate.
+### How much can tools trust this file?
+
+The format records assertions made by the project itself. These assertions may be obsolete or even maliciously false. Tools that consume the file should treat it as additional context that wouldn't otherwise be available, and may want to report results both with and without unverified self-assertions.
+
+### How do I keep my file accurate over time?
+
+Treat each file as describing your project at the commit or release artifact it ships with, and update it as your project evolves. A quick review every 1–6 months is enough for most projects; bump `header.last-updated` and `header.last-reviewed` whenever you make changes.
+
+## Versioning
+
+### How is the specification versioned?
+
+The specification follows [Semantic Versioning](https://semver.org/). See the [Versioning Policy](versioning-policy.md) for the release cadence, the criteria distinguishing major, minor, and patch releases, and the procedure for proposing changes.
+
+## Tooling and Contributing
 
 ### What tools support Security Insights?
 
-As the adoption of Security Insights grows, so does the opportunity to automatically ingest it:
-
-- **[si-tooling](https://github.com/ossf/si-tooling)** - Community-maintained tools for reading, validating and manipulating Security Insights data
-- **[CLOMonitor](https://clomonitor.io/)** - The Linux Foundation's tool that parses Security Insights files to determine whether projects have reported on select security factors
-- **[LFX Insights](https://insights.lfx.linuxfoundation.org/)** - The Linux Foundation's tool that reads a project's Security Insights file to evaluate security hygiene against the OSPS Baseline assessment requirements
-- **[OSPS Baseline Scanner](https://github.com/marketplace/actions/open-source-project-security-baseline-scanner)** - GitHub Action that runs OSPS Baseline assessments on individual repositories using the same scanner as LFX Insights
-
-## Contributing
+See the [Tooling Ecosystem](index.md#tooling-ecosystem) on the home page.
 
 ### How can I contribute to the specification?
 
-The specification is maintained by the [Security Insights maintainers](MAINTAINERS.md) according to the [governance documentation](GOVERNANCE.md).
+The spec is maintained by the [Security Insights maintainers](MAINTAINERS.md) per the [governance documentation](GOVERNANCE.md). Discussion happens in [GitHub Issues](https://github.com/ossf/security-insights/issues), on the OpenSSF Slack [#security_insights](https://openssf.slack.com/messages/security_insights/) channel, and on the [mailing list](mailto:openssf-sig-security-insights+subscribe@lists.openssf.org).
 
-Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights/issues).
-
-**Get Involved:**
-- **Slack**: Join the [OpenSSF Security Insights channel](https://openssf.slack.com/messages/security_insights/)
-- **GitHub**: Contribute at [ossf/security-insights](https://github.com/ossf/security-insights)
-- **Email**: Subscribe to [openssf-sig-security-insights@lists.openssf.org](mailto:openssf-sig-security-insights+subscribe@lists.openssf.org)
-
-### How are changes to the specification proposed?
-
-We ask that you follow the [Security Insights Enhancement Proposal](GOVERNANCE.md#security-insights-enhancement-proposals) process to explore potential changes to the specification.
-
-For major releases, the procedure includes:
-- Discuss and propose the changes through open-source project communication channels (GitHub repo [ossf/security-insights](https://github.com/ossf/security-insights), OpenSSF Slack channels [#wg_metrics_and_metadata](https://openssf.slack.com/archives/C01A50B978T) and [#security_insights](https://openssf.slack.com/archives/C04BB493NET))
-- Conduct a review and discussion among community, and OpenSSF working groups
-- Update the project with proposed changes, and update the changelog
-- Release the updates through GitHub Release
-
-Feedback and suggestions for improvements to the policy are encouraged and can be submitted through the project's communication channels.
-
+To propose a change to the specification, follow the [Security Insights Enhancement Proposal](GOVERNANCE.md#security-insights-enhancement-proposals) process.

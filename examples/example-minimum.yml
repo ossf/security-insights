@@ -4,9 +4,10 @@ header:
   last-reviewed: '2025-04-01'
   url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
   comment: |
-    This file contains the minimum information for both project and repository.
-    It not required to include both a project and repository section if the project
-    section is intended to be inherited by repositories via header.project-si-source
+    This file is a single-repository security-insights.yml: it contains both a
+    project section and a repository section in one file. For multi-repository
+    projects, see example-multi-repository-project.yml (parent) and
+    example-multi-repository-project-reuse.yml (child).
 
 project:
   name: FooBar

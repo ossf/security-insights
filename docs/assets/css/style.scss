@@ -140,3 +140,72 @@ a:active {
   text-decoration: underline;
 }
 
+/* Radio-driven tabs (no JS). The radios are visually hidden but remain
+   focusable so keyboard users can switch panels with arrow keys. The
+   container draws a card-like border so it's obvious which content is
+   switching when the surrounding sections stay static. */
+.tabs {
+  margin: 1.5rem 0;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.tabs > input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  background: #f1f1f1;
+  border-bottom: 1px solid #d0d0d0;
+  padding: 0 0.5rem;
+}
+
+.tab-bar label {
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-weight: 600;
+  color: #555;
+  user-select: none;
+}
+
+.tab-bar label:hover {
+  color: #45208c;
+}
+
+.tab-panel {
+  display: none;
+  padding: 0.25rem 1.5rem 1rem;
+}
+
+.tab-panel > :first-child {
+  margin-top: 0.75rem;
+}
+
+#tab-single:checked ~ .tab-bar label[for="tab-single"],
+#tab-multi:checked ~ .tab-bar label[for="tab-multi"] {
+  color: #45208c;
+  border-bottom-color: #45208c;
+  background: #ffffff;
+}
+
+#tab-single:focus-visible ~ .tab-bar label[for="tab-single"],
+#tab-multi:focus-visible ~ .tab-bar label[for="tab-multi"] {
+  outline: 2px solid #45208c;
+  outline-offset: 2px;
+}
+
+#tab-single:checked ~ #panel-single,
+#tab-multi:checked ~ #panel-multi {
+  display: block;
+}
+

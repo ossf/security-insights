@@ -1,3 +1,9 @@
+---
+layout: default
+title: Versioning Policy
+nav-title: Versioning Policy
+---
+
 # Security Insights Specification Versioning Policy
 
 ## 1. Introduction
