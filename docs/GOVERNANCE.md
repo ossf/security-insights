@@ -95,5 +95,5 @@ The project's governance model shall be revisited every six months to address th
 
 At any point, a Security Insights Enhancement Proposal may be opened to redefine the project's governance. To be accepted, governing model proposals shall be approved by a qualified majority consisting of a minimum of 66% favorable votes of all active maintainers.
 
-[MAINTAINERS.md]: /MAINTAINERS.md
+[MAINTAINERS.md]: MAINTAINERS.md
 [Maintainer Consensus]: #maintainer-consensus
