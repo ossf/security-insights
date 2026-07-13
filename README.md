@@ -3,38 +3,62 @@
 
 <img align="right" src="docs/assets/security-insights-logo.png" alt="Security Insights Logo" width="200">
 
-Security Insights is a standardized YAML format that lets open source projects self-report their security practices, policies, and processes in a machine-processable way. It fills the gap between simplified solutions like `SECURITY.md` and comprehensive automated solutions like SBOMs — recording elements that must be self-asserted by the project itself.
+Security Insights is a single YAML file where a project reports its security practices in a standard, machine-readable format.
 
-It's intended to be useful for:
+It fills the gap between a plain-text `SECURITY.md` and an SBOM (a machine-readable list of everything inside your software). Some security facts can only be reported by maintainers themselves. This file is where they go.
 
-- **Project maintainers** communicating their security posture clearly
-- **Security researchers** finding how to report vulnerabilities
-- **End users and organizations** evaluating the security of dependencies
-- **Automated tools** parsing and analyzing security information consistently
+## Who is it for?
+
+- **Project maintainers** — communicate your security posture clearly
+- **Security researchers** — learn how to report vulnerabilities
+- **End users and organizations** — evaluate the security of dependencies
+- **Automated tools** — parse security information consistently
 
 ## Quick Start
 
 ### For Project Maintainers
 
-The [Get Started guide](https://security-insights.openssf.org/get-started.html) covers single-repo and multi-repo layouts, copyable examples, and the validation command. A single-repository project typically takes about 30 minutes from first read to a validated file.
+Most single-repository projects can produce a useful `security-insights.yml` in about 30 minutes.
+
+1. Copy the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) into your repository. The recommended location is `.github/security-insights.yml`. The repository root and `.gitlab/` also work.
+2. Edit the values to match your project. The [Schema Documentation](docs/schema.md) explains every field.
+3. Validate your file with [CUE](https://cuelang.org/docs/introduction/installation/), the tool that powers this spec's schema:
+
+   ```sh
+   curl -LO https://raw.githubusercontent.com/ossf/security-insights/main/spec/schema.cue
+   cue vet -d '#SecurityInsights' schema.cue .github/security-insights.yml
+   ```
+
+   No output means your file is valid.
+
+**Multi-Repository Projects:**
+
+Projects with many repositories can keep shared project data in one file. Each repository's own file then points to it using the `header.project-si-source` field. See the [multi-repository examples](https://github.com/ossf/security-insights/tree/main/examples) for details.
+
+**Ongoing Maintenance:**
+
+Keep your `security-insights.yml` up to date as your project evolves. A periodic reminder (every 3 or 6 months) helps.
 
 ### For Consumers
 
-Look for `security-insights.yml` at the repository root or in the source-forge directory (`.github/`, `.gitlab/`, etc.). Treat the file as describing the project at the commit or release artifact it ships with. For multi-repository projects, a child file's `header.project-si-source` points at the raw URL of the parent file containing the `project:` section; consumers should fetch and merge that data.
+Tools and researchers can read these files automatically. Look for `security-insights.yml` in a repository's root, `.github/`, or `.gitlab/` directory.
+
+Treat the contents as a snapshot. It describes the commit or release it ships with, not necessarily the project's current state.
 
 ## Documentation
 
-- **[Get Started](https://security-insights.openssf.org/get-started.html)** - Step-by-step guide for producing a valid file
 - **[Schema Documentation](docs/schema.md)** - Complete reference for all fields in the specification
-- **[Examples](https://github.com/ossf/security-insights/tree/main/examples)** - Starting points for each layout:
-  - [example-minimum.yml](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) - Single repository, minimal required fields
-  - [example-full.yml](https://github.com/ossf/security-insights/blob/main/examples/example-full.yml) - Single repository, all possible fields
-  - [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Multi-repo: parent file holding the `project:` section
-  - [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Multi-repo: child file referencing the parent
+- **[Examples](https://github.com/ossf/security-insights/tree/main/examples)** - Example files for different use cases:
+  - [example-minimum.yml](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) - Minimal required fields
+  - [example-full.yml](https://github.com/ossf/security-insights/blob/main/examples/example-full.yml) - All possible fields
+  - [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
+  - [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
 
 ## Releases
 
-The repository's `main` branch may diverge from the latest tagged release as work lands toward the next version; treat the difference as a non-authoritative preview. The current authoritative schema is published with the [latest release](https://github.com/ossf/security-insights/releases/latest).
+Download the official schema from the [latest release](https://github.com/ossf/security-insights/releases/latest).
+
+The `main` branch may be slightly ahead of the latest release. Treat any differences as a preview of the next release, not as final.
 
 ## Tooling Ecosystem
 
@@ -42,10 +66,17 @@ As the adoption of Security Insights grows, so does the opportunity to automatic
 
 - **[si-tooling](https://github.com/ossf/si-tooling)** - Community-maintained tools for reading, validating and manipulating Security Insights data
 - **[CLOMonitor](https://clomonitor.io/)** - The Linux Foundation's tool that parses Security Insights files to determine whether projects have reported on select security factors
-- **[LFX Insights](https://insights.lfx.linuxfoundation.org/)** - The Linux Foundation's tool that reads a project's Security Insights file to evaluate security hygiene against the OSPS Baseline assessment requirements
+- **[LFX Insights](https://insights.lfx.linuxfoundation.org/)** - The Linux Foundation's tool that reads a project's Security Insights file to evaluate security hygiene against the OSPS Baseline (a set of minimum security requirements for open source projects)
 - **[OSPS Baseline Scanner](https://github.com/marketplace/actions/open-source-project-security-baseline-scanner)** - GitHub Action that runs OSPS Baseline assessments on individual repositories using the same scanner as LFX Insights
 
 ## Contributing
 
-The specification is maintained by [the Security Insights maintainers](https://github.com/ossf/security-insights/blob/main/docs/MAINTAINERS.md) per the [governance documentation](https://github.com/ossf/security-insights/blob/main/docs/GOVERNANCE.md). Discussion happens in [GitHub Issues](https://github.com/ossf/security-insights/issues) and the OpenSSF Slack [#security_insights](https://openssf.slack.com/messages/security_insights/) channel; spec changes follow the [Security Insights Enhancement Proposal](https://github.com/ossf/security-insights/blob/main/docs/GOVERNANCE.md#security-insights-enhancement-proposals) process.
+The specification is maintained by the [Security Insights maintainers](https://github.com/ossf/security-insights/blob/main/docs/MAINTAINERS.md) according to the [governance documentation](https://github.com/ossf/security-insights/blob/main/docs/GOVERNANCE.md).
+
+Discussion and feedback should take place in [GitHub Issues](https://github.com/ossf/security-insights/issues). We ask that you follow the [Security Insights Enhancement Proposal](https://github.com/ossf/security-insights/blob/main/docs/GOVERNANCE.md#security-insights-enhancement-proposals) process to explore potential changes to the specification.
+
+## Get Involved
+
+- **Slack**: Join the [OpenSSF Security Insights channel](https://openssf.slack.com/messages/security_insights/)
+- **GitHub**: Contribute at [ossf/security-insights](https://github.com/ossf/security-insights)
 
