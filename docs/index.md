@@ -25,41 +25,23 @@ It fills the gap between a plain-text `SECURITY.md` and an SBOM (a machine-reada
 
 ### For Project Maintainers
 
-Most single-repository projects can produce a useful `security-insights.yml` in about 30 minutes.
-
-1. Copy the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) into your repository. The recommended location is `.github/security-insights.yml`. The repository root and `.gitlab/` also work.
-2. Edit the values to match your project. The [Schema Documentation](/schema.md) explains every field.
-3. Validate your file with [CUE](https://cuelang.org/docs/introduction/installation/), the tool that powers this spec's schema:
-
-   ```sh
-   curl -LO https://raw.githubusercontent.com/ossf/security-insights/main/spec/schema.cue
-   cue vet -d '#SecurityInsights' schema.cue .github/security-insights.yml
-   ```
-
-   No output means your file is valid.
-
-**Multi-Repository Projects:**
-
-Projects with many repositories can keep shared project data in one file. Each repository's own file then points to it using the `header.project-si-source` field. See the [multi-repository examples](https://github.com/ossf/security-insights/tree/main/examples) for details.
-
-**Ongoing Maintenance:**
-
-Keep your `security-insights.yml` up to date as your project evolves. A periodic reminder (every 3 or 6 months) helps.
+Follow the [Get Started guide](https://security-insights.openssf.org/get-started.html). It covers single-repo and multi-repo layouts, copyable examples, and the validation command. A single-repository project typically takes about 30 minutes from first read to a validated file.
 
 ### For Consumers
 
-Tools and researchers can read these files automatically. Look for `security-insights.yml` in a repository's root, `.github/`, or `.gitlab/` directory.
+Look for `security-insights.yml` at the repository root or in the source-forge directory (`.github/`, `.gitlab/`, etc.).
 
 Treat the contents as a snapshot. It describes the commit or release it ships with, not necessarily the project's current state.
 
 ## Documentation
 
-- **[Schema Documentation](/schema.md)** - Complete reference for all fields in the specification
-- **[Examples](https://github.com/ossf/security-insights/tree/main/examples)** - Example files for different use cases:
-  - [example-minimum.yml](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) - Minimal required fields
-  - [example-full.yml](https://github.com/ossf/security-insights/blob/main/examples/example-full.yml) - All possible fields
-  - [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Primary repository for multi-repo projects
-  - [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Secondary repository example
+- **[Get Started](https://security-insights.openssf.org/get-started.html)** - Step-by-step guide for producing a valid file
+- **[Schema Documentation](/schema.html)** - Complete reference for all fields in the specification
+- **[Examples](https://github.com/ossf/security-insights/tree/main/examples)** - Starting points for each layout:
+  - [example-minimum.yml](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) - Single repository, minimal required fields
+  - [example-full.yml](https://github.com/ossf/security-insights/blob/main/examples/example-full.yml) - Single repository, all possible fields
+  - [example-multi-repository-project.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project.yml) - Multi-repo: parent file holding the `project:` section
+  - [example-multi-repository-project-reuse.yml](https://github.com/ossf/security-insights/blob/main/examples/example-multi-repository-project-reuse.yml) - Multi-repo: child file referencing the parent
 
 ## Releases
 

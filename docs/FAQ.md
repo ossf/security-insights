@@ -46,14 +46,11 @@ Tools can guess some things about a project's security, but they often guess wro
 
 Start small — the minimum file needs little more than a security contact and the project owners. Most single-repository projects produce a useful file in about 30 minutes.
 
-1. Copy the [minimum example](https://github.com/ossf/security-insights/blob/main/examples/example-minimum.yml) into your repository.
-2. Edit the values to match your project. The [Schema Documentation](schema.md) explains every field.
-3. [Place the file](#where-should-i-place-the-security-insightsyml-file) where tools can find it.
-4. [Validate it](#how-do-i-validate-my-security-insightsyml-file).
+Follow the [Get Started guide](get-started.md). It walks through both single-repo and multi-repo setups.
 
 ### Where should I place the security-insights.yml file?
 
-The recommended location is `.github/security-insights.yml`. The repository root and `.gitlab/` also work. Tools look in these locations automatically.
+Place it at the repository root as `security-insights.yml`, or in your code host's config directory (`.github/` or `.gitlab/`). Tools look in these locations automatically.
 
 ### How do I validate my security-insights.yml file?
 
@@ -94,6 +91,8 @@ The specification uses semantic versioning: **Major.Minor.Patch**.
 - **Major** — significant changes; ideally at most one per year
 - **Minor** — improvements; ideally at most four per year
 - **Patch** — small fixes and typo corrections
+
+See the [versioning policy](versioning-policy.md) for details.
 
 ### Where can I find the latest release?
 
