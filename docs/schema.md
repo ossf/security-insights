@@ -489,23 +489,23 @@ URL is a TLS URL
 ---
 
 
-[ProjectRepository]: #projectrepository
-[Link]: #link
-[RepositoryDocumentation]: #repositorydocumentation
-[ReleaseDetails]: #releasedetails
-[SecurityToolResults]: #securitytoolresults
-[Header]: #header
-[Project]: #project
-[SchemaVersion]: #schemaversion
+[Attestation]: #attestation
 [Contact]: #contact
+[Date]: #date
+[Email]: #email
+[Header]: #header
+[License]: #license
+[Link]: #link
+[Project]: #project
 [ProjectDocumentation]: #projectdocumentation
+[ProjectRepository]: #projectrepository
+[ReleaseDetails]: #releasedetails
+[Repository]: #repository
+[RepositoryDocumentation]: #repositorydocumentation
+[SchemaVersion]: #schemaversion
+[SecurityPosture]: #securityposture
 [SecurityTool]: #securitytool
 [SecurityToolIntegration]: #securitytoolintegration
-[Repository]: #repository
-[Date]: #date
-[VulnerabilityReporting]: #vulnerabilityreporting
-[Email]: #email
-[Attestation]: #attestation
-[License]: #license
-[SecurityPosture]: #securityposture
+[SecurityToolResults]: #securitytoolresults
 [URL]: #url
+[VulnerabilityReporting]: #vulnerabilityreporting
