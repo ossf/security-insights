@@ -1,10 +1,15 @@
 Thank you for your interest in contributing to the Security Insights Specification!
 
+## Before You Start
+
+Changing the schema itself? That needs a Security Insights Enhancement Proposal (SIEP) first, not a direct pull request. See the [governance process](../docs/GOVERNANCE.md#security-insights-enhancement-proposals). Typo fixes and documentation changes can go straight to a pull request.
+
 ## How to Contribute
 
 1. [Fork](https://docs.github.com/en/get-started/quickstart/fork-a-repo) the repository to your own GitHub account.
 2. Make changes or improvements to the specification document in your forked repository.
-3. Create a [Pull Request](https://docs.github.com/en/get-started/quickstart/opening-a-pull-request) with a clear title and description of your changes.
+3. Sign off every commit: `git commit -s -m "your message"`. This adds a `Signed-off-by` line certifying the [Developer Certificate of Origin (DCO)](https://developercertificate.org/). Pull requests with unsigned commits are blocked automatically.
+4. Create a [Pull Request](https://docs.github.com/en/get-started/quickstart/opening-a-pull-request) with a clear title and description of your changes.
 
 ## Issue Reporting
 
@@ -18,7 +23,7 @@ Reach out to us on [Slack](https://openssf.slack.com/messages/security_insights)
 
 ## Code of Conduct
 
-Please adhere to our [Code of Conduct](https://github.com/ossf/.github/CODE_OF_CONDUCT.md) when participating in this project.
+Please adhere to our [Code of Conduct](https://github.com/ossf/.github/blob/main/CODE_OF_CONDUCT.md) when participating in this project.
 
 ## Licensing
 
