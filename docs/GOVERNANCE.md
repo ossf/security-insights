@@ -34,7 +34,7 @@ To introduce a new feature or functional modification into the Security Insights
 
 SIEPs filed by non-maintainers need to be sponsored by a maintainer before being admitted for discussion.
 
-SIEPs shall follow the structure set forth by the issue template in the Security Insights/community repository.
+To file a SIEP, [open a new issue](https://github.com/ossf/security-insights/issues/new/choose) and choose the Security Insights Enhancement Proposal template.
 
 After a SIEP is accepted for discussion, it shall remain in under discussion status for no longer than 30 days, after which consensus will be recorded according to the [maintainer consensus process](#maintainer-consensus).
 
@@ -60,7 +60,7 @@ Note that when qualified, the proponents may add their favorable vote to count t
 
 Any changes intended to be merged in the Security Insights repositories shall meet the following minimal criteria:
 
-- Commits must be signed off.
+- Commits must be signed off (`git commit -s`) to certify the [Developer Certificate of Origin](https://developercertificate.org/).
 - Pull requests must be approved by at least one of the project's maintainers.
 
 Any repository under the Security Insights organization may impose additional requirements to approve pull requests as long as these minimal requirements are met.
@@ -95,5 +95,5 @@ The project's governance model shall be revisited every six months to address th
 
 At any point, a Security Insights Enhancement Proposal may be opened to redefine the project's governance. To be accepted, governing model proposals shall be approved by a qualified majority consisting of a minimum of 66% favorable votes of all active maintainers.
 
-[MAINTAINERS.md]: /MAINTAINERS.md
+[MAINTAINERS.md]: MAINTAINERS.md
 [Maintainer Consensus]: #maintainer-consensus

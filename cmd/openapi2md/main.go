@@ -404,7 +404,12 @@ func convertOpenAPIToMarkdown(inputFile, outputDir string, roots []string) error
 		}
 	}
 
+	headers := make([]string, 0, len(linkedHeaders))
 	for header := range linkedHeaders {
+		headers = append(headers, header)
+	}
+	sort.Strings(headers)
+	for _, header := range headers {
 		buf.WriteString(fmt.Sprintf("\n[%s]: #%s", header, strings.ToLower(header)))
 	}
 

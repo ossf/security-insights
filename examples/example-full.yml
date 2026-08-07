@@ -1,5 +1,5 @@
 header:
-  schema-version: 2.0.0
+  schema-version: 2.2.0
   last-updated: '2025-03-01'
   last-reviewed: '2025-04-01'
   url: https://example.com/foo/bar/raw/branch/main/security-insights.yml
@@ -60,7 +60,7 @@ project:
       Lorum ipsum...
 
 repository:
-  url: https://github.com/kubernetes/kubernetes
+  url: https://example.com/foobar/foo
   status: active
   bug-fixes-only: false
   accepts-change-request: true
@@ -131,7 +131,7 @@ repository:
         type: SCA
         version: 1.2.3
         rulesets:
-          - built-in
+          - default
         results:
           adhoc:
             name: Scheduled SCA Scan Results

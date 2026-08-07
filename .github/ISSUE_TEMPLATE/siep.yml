@@ -71,9 +71,7 @@ body:
       description: Select the maintainer sponsoring this proposal.
       multiple: false
       options:
-        - label: No Sponsor Yet
-          value: None
-        - label: Eddie Knight
-          value: "@eddie-knight"
+        - No Sponsor Yet
+        - Eddie Knight (@eddie-knight)
     validations:
       required: true
