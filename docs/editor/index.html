@@ -56,8 +56,8 @@ nav-title: Editor
           <input type="checkbox" id="single-maintainer-checkbox">
           <span>This is a single-maintainer project</span>
         </label>
-        <p class="help-text">If checked, your contact info will be used for administrator, core team, and security
-          contacts.</p>
+        <p class="help-text">If checked, your contact info will be used for project administrator, repository core
+          team, and vulnerability reporting contact fields.</p>
         <div id="single-maintainer-fields" class="hidden">
           <div class="maintainer-fields-row">
             <div class="maintainer-field">
@@ -81,10 +81,14 @@ nav-title: Editor
 
   <!-- Parent File Section (for multi-repository) -->
   <div class="parent-section hidden" id="parent-section">
-    <h3>Parent Security Insights File Required</h3>
-    <p>This file references a parent security insights file at: <code id="parent-url"></code></p>
-    <p>Unable to fetch automatically. Please provide the parent file:</p>
+    <h3>Parent Security Insights File</h3>
+    <p>This child file references: <code id="parent-url"></code></p>
+    <p>
+      Parent files are never fetched automatically. Choose whether to fetch this exact
+      reference, upload the parent yourself, or continue without inherited project context.
+    </p>
     <input type="file" id="parent-file-input" accept=".yml,.yaml" hidden>
+    <button type="button" id="parent-fetch-btn" class="btn btn-primary">Fetch Parent File</button>
     <button type="button" id="parent-browse-btn" class="btn">Upload Parent File</button>
     <button type="button" id="skip-parent-btn" class="btn btn-secondary">Skip (edit without parent)</button>
   </div>
@@ -97,7 +101,7 @@ nav-title: Editor
   </div>
 
   <!-- Main Editor Area -->
-  <div class="editor-main" id="editor-main">
+  <div class="editor-main hidden" id="editor-main">
     <!-- Form Editor -->
     <div class="form-editor" id="form-editor">
       <div class="form-sections" id="form-sections">
@@ -143,9 +147,13 @@ nav-title: Editor
 </div>
 
 <!-- External Dependencies -->
-<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/js-yaml@4.3.1/dist/js-yaml.min.js"
+  integrity="sha384-S9ICdlb+JXmKnf3zbM1G+PBNWbhB7ARTUpJyvroFrHHHR8JsKt4oO+kPyfzbT+TM"
+  crossorigin="anonymous"></script>
 
 <!-- Application Scripts -->
+<script src="{{ '/editor/js/editor-utils.js' | relative_url }}"></script>
 <script src="{{ '/editor/js/cue-parser.js' | relative_url }}"></script>
 <script src="{{ '/editor/js/schema-fallback.js' | relative_url }}"></script>
 <script src="{{ '/editor/js/form-builder.js' | relative_url }}"></script>

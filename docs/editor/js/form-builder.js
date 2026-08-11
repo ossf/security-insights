@@ -1,136 +1,105 @@
 /**
- * Form Builder - Generates dynamic forms from CUE schema AST
- *
- * Traverses the schema AST to create HTML forms with:
- * - Text/email/date/url inputs with regex validation
- * - Select dropdowns for enum types
- * - Checkbox inputs for boolean fields
- * - Dynamic arrays with add/remove functionality
- * - Collapsible sections for nested objects
- * - Required field indicators
+ * Dynamic form field renderer shared by the full form and wizard modes.
  */
-
 const FormBuilder = (function () {
   'use strict';
+
+  const Utils = typeof EditorUtils !== 'undefined'
+    ? EditorUtils
+    : require('./editor-utils.js');
 
   let schema = null;
   let formData = {};
   let onChangeCallback = null;
+  let readOnlyPaths = [];
 
-  /**
-   * Initialize the form builder with a schema
-   */
   function init(schemaAST, onChange) {
     schema = schemaAST;
     onChangeCallback = onChange;
   }
 
-  /**
-   * Set form data (e.g., when loading from YAML)
-   */
   function setFormData(data) {
     formData = data || {};
   }
 
-  /**
-   * Get current form data
-   */
   function getFormData() {
     return formData;
   }
 
-  /**
-   * Generate a unique ID for form elements
-   */
-  function generateId(prefix) {
-    return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
+  function setReadOnlyPaths(paths) {
+    readOnlyPaths = Array.isArray(paths) ? [...paths] : [];
   }
 
-  /**
-   * Convert field name to human-readable label
-   */
+  function isReadOnly(path) {
+    return readOnlyPaths.some(prefix => Utils.isPathWithin(path, prefix));
+  }
+
+  function generateId(prefix) {
+    const safePrefix = String(prefix).replace(/[^a-zA-Z0-9_-]/g, '-');
+    return `${safePrefix}-${Math.random().toString(36).slice(2, 11)}`;
+  }
+
   function toLabel(fieldName) {
     return fieldName
       .replace(/-/g, ' ')
       .replace(/_/g, ' ')
       .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/\b\w/g, l => l.toUpperCase());
+      .replace(/\b\w/g, letter => letter.toUpperCase());
   }
 
-  /**
-   * Get nested value from object using path
-   */
-  function getNestedValue(obj, path) {
-    return path.split('.').reduce((current, key) => {
-      return current && current[key] !== undefined ? current[key] : undefined;
-    }, obj);
+  function createTextElement(tagName, className, text) {
+    const element = document.createElement(tagName);
+    if (className) {
+      element.className = className;
+    }
+    element.textContent = text;
+    return element;
   }
 
-  /**
-   * Set nested value in object using path
-   */
-  function setNestedValue(obj, path, value) {
-    const keys = path.split('.');
-    const lastKey = keys.pop();
-    const parent = keys.reduce((current, key) => {
-      if (current[key] === undefined) {
-        current[key] = {};
-      }
-      return current[key];
-    }, obj);
-    parent[lastKey] = value;
+  function appendRequiredIndicator(label) {
+    const indicator = createTextElement('span', 'required-indicator', '*');
+    label.appendChild(indicator);
   }
 
-  /**
-   * Delete nested value from object using path
-   */
-  function deleteNestedValue(obj, path) {
-    const keys = path.split('.');
-    const lastKey = keys.pop();
-    const parent = keys.reduce((current, key) => {
-      return current && current[key] !== undefined ? current[key] : undefined;
-    }, obj);
-    if (parent && lastKey in parent) {
-      delete parent[lastKey];
+  function appendDescription(container, description, className = 'field-description') {
+    if (description) {
+      container.appendChild(createTextElement('p', className, description));
     }
   }
 
-  /**
-   * Trigger change callback
-   */
+  function resolveType(typeDef) {
+    return typeDef && typeDef.kind === 'reference'
+      ? schema.resolveType(typeDef)
+      : typeDef;
+  }
+
   function triggerChange() {
     if (onChangeCallback) {
       onChangeCallback(formData);
     }
   }
 
-  /**
-   * Build the main form for SecurityInsights
-   */
   function buildForm(container) {
+    container.replaceChildren();
+
     if (!schema) {
-      container.innerHTML = '<p class="error">Schema not loaded</p>';
+      container.appendChild(createTextElement('p', 'error', 'Schema not loaded'));
       return;
     }
 
     const rootType = schema.getType('#SecurityInsights');
     if (!rootType || rootType.kind !== 'struct') {
-      container.innerHTML = '<p class="error">Invalid schema: SecurityInsights type not found</p>';
+      container.appendChild(
+        createTextElement('p', 'error', 'Invalid schema: SecurityInsights type not found')
+      );
       return;
     }
 
-    container.innerHTML = '';
-
-    // Build sections for each top-level field
     for (const [fieldName, field] of Object.entries(rootType.fields)) {
-      const section = buildSection(fieldName, field, fieldName);
-      container.appendChild(section);
+      container.appendChild(buildSection(fieldName, field, fieldName));
     }
   }
 
-  /**
-   * Build a collapsible section for a struct field
-   */
   function buildSection(fieldName, field, path) {
     const section = document.createElement('div');
     section.className = 'form-section';
@@ -138,65 +107,47 @@ const FormBuilder = (function () {
 
     const header = document.createElement('div');
     header.className = 'form-section-header';
-    header.innerHTML = `
-      <h3>
-        <span class="toggle-icon">▼</span>
-        ${toLabel(fieldName)}
-        ${!field.optional ? '<span class="form-section-required">*</span>' : ''}
-      </h3>
-    `;
-    header.addEventListener('click', () => {
-      section.classList.toggle('collapsed');
-    });
+
+    const heading = document.createElement('h3');
+    heading.appendChild(createTextElement('span', 'toggle-icon', '▼'));
+    heading.appendChild(document.createTextNode(` ${toLabel(fieldName)} `));
+    if (!field.optional) {
+      heading.appendChild(createTextElement('span', 'form-section-required', '*'));
+    }
+    header.appendChild(heading);
+    header.addEventListener('click', () => section.classList.toggle('collapsed'));
 
     const content = document.createElement('div');
     content.className = 'form-section-content';
+    appendDescription(content, field.description);
 
-    // Add description if available
-    if (field.description) {
-      const desc = document.createElement('p');
-      desc.className = 'field-description';
-      desc.textContent = field.description;
-      content.appendChild(desc);
+    if (isReadOnly(path)) {
+      content.appendChild(
+        createTextElement(
+          'p',
+          'field-description inherited-note',
+          'Inherited from the parent Security Insights file. Load that file directly to edit these values.'
+        )
+      );
     }
 
-    // Resolve the type and build fields
-    let resolvedType = field;
-    if (field.kind === 'reference') {
-      resolvedType = schema.resolveType(field);
-    }
-
+    const resolvedType = resolveType(field);
     if (resolvedType && resolvedType.kind === 'struct') {
       for (const [subFieldName, subField] of Object.entries(resolvedType.fields)) {
-        const fieldEl = buildField(subFieldName, subField, `${path}.${subFieldName}`);
-        content.appendChild(fieldEl);
+        content.appendChild(buildField(subFieldName, subField, `${path}.${subFieldName}`));
       }
     } else {
-      // Non-struct type at top level
-      const fieldEl = buildField(fieldName, field, path);
-      content.appendChild(fieldEl);
+      content.appendChild(buildField(fieldName, field, path));
     }
 
     section.appendChild(header);
     section.appendChild(content);
-
     return section;
   }
 
-  /**
-   * Build a form field based on its type
-   */
   function buildField(fieldName, field, path) {
-    let resolvedType = field;
-    if (field.kind === 'reference') {
-      resolvedType = schema.resolveType(field);
-    }
+    const resolvedType = resolveType(field);
 
-    const container = document.createElement('div');
-    container.className = 'form-field';
-    container.dataset.path = path;
-
-    // Handle different field types
     if (resolvedType) {
       switch (resolvedType.kind) {
         case 'primitive':
@@ -209,106 +160,108 @@ const FormBuilder = (function () {
           return buildNestedStructField(fieldName, field, resolvedType, path);
         case 'disjunction':
           return buildDisjunctionField(fieldName, field, resolvedType, path);
-        case 'reference':
-          // Double-reference - resolve again
-          const deepResolved = schema.resolveType(resolvedType);
+        case 'reference': {
+          const deepResolved = resolveType(resolvedType);
           if (deepResolved) {
             return buildField(fieldName, { ...field, ...deepResolved }, path);
           }
           break;
+        }
       }
     }
 
-    // Fallback to text input
-    return buildPrimitiveField(fieldName, field, { kind: 'primitive', type: 'string' }, path);
+    return buildPrimitiveField(
+      fieldName,
+      field,
+      { kind: 'primitive', type: 'string' },
+      path
+    );
   }
 
-  /**
-   * Build a primitive field (string, bool, date)
-   */
+  function buildFieldLabel(fieldName, id, required) {
+    const label = document.createElement('label');
+    if (id) {
+      label.htmlFor = id;
+    }
+    label.appendChild(document.createTextNode(`${toLabel(fieldName)} `));
+    if (required) {
+      appendRequiredIndicator(label);
+    }
+    return label;
+  }
+
   function buildPrimitiveField(fieldName, field, resolvedType, path) {
     const container = document.createElement('div');
-    container.className = 'form-field';
+    container.className = resolvedType.type === 'bool'
+      ? 'form-field form-field-checkbox'
+      : 'form-field';
     container.dataset.path = path;
 
     const id = generateId(fieldName);
     const required = !field.optional;
-    const pattern = schema.getPattern(field) || resolvedType.pattern;
-    const currentValue = getNestedValue(formData, path);
+    const currentValue = Utils.getNestedValue(formData, path);
+    const fieldReadOnly = isReadOnly(path);
 
     if (resolvedType.type === 'bool') {
-      // Checkbox for boolean
-      container.className = 'form-field form-field-checkbox';
-      container.innerHTML = `
-        <input type="checkbox" id="${id}" ${currentValue ? 'checked' : ''}>
-        <label for="${id}">
-          ${toLabel(fieldName)}
-          ${required ? '<span class="required-indicator">*</span>' : ''}
-        </label>
-      `;
-
-      const checkbox = container.querySelector('input');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = id;
+      checkbox.checked = currentValue === true;
+      checkbox.disabled = fieldReadOnly;
       checkbox.addEventListener('change', () => {
-        setNestedValue(formData, path, checkbox.checked);
+        Utils.setNestedValue(formData, path, checkbox.checked);
         triggerChange();
       });
-    } else {
-      // Text input for strings and dates
-      let inputType = 'text';
-      let placeholder = '';
-      const isReadOnly = fieldName === 'schema-version';
-      const defaultValue = isReadOnly ? '2.2.0' : '';
 
-      if (resolvedType.type === 'date') {
-        inputType = 'date';
-      } else if (pattern && pattern.includes('@')) {
-        inputType = 'email';
-        placeholder = 'email@example.com';
-      } else if (pattern && pattern.includes('https?')) {
-        inputType = 'url';
-        placeholder = 'https://example.com';
-      }
-
-      // For read-only fields like schema-version, ensure the value is set
-      const displayValue = isReadOnly ? defaultValue : (currentValue || '');
-      if (isReadOnly && !currentValue) {
-        setNestedValue(formData, path, defaultValue);
-      }
-
-      container.innerHTML = `
-        <label for="${id}">
-          ${toLabel(fieldName)}
-          ${required ? '<span class="required-indicator">*</span>' : ''}
-        </label>
-        ${field.description ? `<p class="field-description">${field.description}</p>` : ''}
-        <input type="${inputType}" id="${id}"
-               value="${displayValue}"
-               placeholder="${placeholder}"
-               ${pattern ? `pattern="${pattern}"` : ''}
-               ${required ? 'required' : ''}
-               ${isReadOnly ? 'readonly' : ''}>
-        ${isReadOnly ? '<p class="field-description read-only-note">This field is automatically set and cannot be changed.</p>' : ''}
-      `;
-
-      const input = container.querySelector('input');
-      if (!isReadOnly) {
-        input.addEventListener('input', () => {
-          if (input.value) {
-            setNestedValue(formData, path, input.value);
-          } else {
-            deleteNestedValue(formData, path);
-          }
-          triggerChange();
-        });
-      }
+      container.appendChild(checkbox);
+      container.appendChild(buildFieldLabel(fieldName, id, required));
+      appendDescription(container, field.description);
+      return container;
     }
 
+    const pattern = schema.getPattern(field) || resolvedType.pattern;
+    let inputType = 'text';
+    let placeholder = '';
+
+    if (resolvedType.type === 'date') {
+      inputType = 'date';
+    } else if (pattern && pattern.includes('@')) {
+      inputType = 'email';
+      placeholder = 'email@example.com';
+    } else if (pattern && pattern.includes('https?')) {
+      inputType = 'url';
+      placeholder = 'https://example.com';
+    }
+
+    container.appendChild(buildFieldLabel(fieldName, id, required));
+    appendDescription(container, field.description);
+
+    const input = document.createElement('input');
+    input.type = inputType;
+    input.id = id;
+    input.value = currentValue === undefined || currentValue === null
+      ? ''
+      : String(currentValue);
+    input.placeholder = placeholder;
+    input.required = required;
+    input.disabled = fieldReadOnly;
+    if (pattern) {
+      input.pattern = pattern;
+    }
+
+    input.addEventListener('input', () => {
+      if (input.value) {
+        Utils.setNestedValue(formData, path, input.value);
+      } else {
+        Utils.deleteNestedValue(formData, path);
+      }
+      triggerChange();
+    });
+
+    container.appendChild(input);
     return container;
   }
 
-  /**
-   * Build an enum field (select dropdown)
-   */
   function buildEnumField(fieldName, field, resolvedType, path) {
     const container = document.createElement('div');
     container.className = 'form-field';
@@ -316,330 +269,310 @@ const FormBuilder = (function () {
 
     const id = generateId(fieldName);
     const required = !field.optional;
-    const currentValue = getNestedValue(formData, path);
-    const values = resolvedType.values || [];
+    const currentValue = Utils.getNestedValue(formData, path);
 
-    container.innerHTML = `
-      <label for="${id}">
-        ${toLabel(fieldName)}
-        ${required ? '<span class="required-indicator">*</span>' : ''}
-      </label>
-      ${field.description ? `<p class="field-description">${field.description}</p>` : ''}
-      <select id="${id}" ${required ? 'required' : ''}>
-        <option value="">-- Select --</option>
-        ${values.map(v => `<option value="${v}" ${currentValue === v ? 'selected' : ''}>${v}</option>`).join('')}
-      </select>
-    `;
+    container.appendChild(buildFieldLabel(fieldName, id, required));
+    appendDescription(container, field.description);
 
-    const select = container.querySelector('select');
+    const select = document.createElement('select');
+    select.id = id;
+    select.required = required;
+    select.disabled = isReadOnly(path);
+
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '-- Select --';
+    select.appendChild(emptyOption);
+
+    for (const value of resolvedType.values || []) {
+      const option = document.createElement('option');
+      option.value = String(value);
+      option.textContent = String(value);
+      option.selected = currentValue === value;
+      select.appendChild(option);
+    }
+
     select.addEventListener('change', () => {
       if (select.value) {
-        setNestedValue(formData, path, select.value);
+        Utils.setNestedValue(formData, path, select.value);
       } else {
-        deleteNestedValue(formData, path);
+        Utils.deleteNestedValue(formData, path);
       }
       triggerChange();
     });
 
+    container.appendChild(select);
     return container;
   }
 
-  /**
-   * Build an array field with add/remove functionality
-   */
   function buildArrayField(fieldName, field, resolvedType, path) {
     const container = document.createElement('div');
     container.className = 'form-field array-field';
     container.dataset.path = path;
 
-    const id = generateId(fieldName);
     const required = !field.optional;
     const minItems = resolvedType.minItems || 0;
+    const maxItems = resolvedType.maxItems;
     const itemType = resolvedType.itemType;
-    let currentValue = getNestedValue(formData, path);
 
-    // Only initialize array if it doesn't exist
-    if (!Array.isArray(currentValue)) {
-      currentValue = [];
+    const header = document.createElement('div');
+    header.className = 'array-field-header';
+    const heading = document.createElement('h4');
+    heading.appendChild(document.createTextNode(`${toLabel(fieldName)} `));
+    if (required) {
+      appendRequiredIndicator(heading);
+    }
+    if (minItems > 0) {
+      heading.appendChild(createTextElement('span', 'min-items', `(min: ${minItems})`));
     }
 
-    // Ensure we have at least minItems (only if array is smaller than minimum)
-    while (currentValue.length < minItems) {
-      currentValue.push(getDefaultForType(itemType));
-    }
-    setNestedValue(formData, path, currentValue);
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'btn btn-small add-item-btn';
+    addButton.textContent = '+ Add';
 
-    container.innerHTML = `
-      <div class="array-field-header">
-        <h4>
-          ${toLabel(fieldName)}
-          ${required ? '<span class="required-indicator">*</span>' : ''}
-          ${minItems > 0 ? `<span class="min-items">(min: ${minItems})</span>` : ''}
-        </h4>
-        <button type="button" class="btn btn-small add-item-btn">+ Add</button>
-      </div>
-      ${field.description ? `<p class="field-description">${field.description}</p>` : ''}
-      <div class="array-items" id="${id}"></div>
-    `;
+    header.appendChild(heading);
+    header.appendChild(addButton);
+    container.appendChild(header);
+    appendDescription(container, field.description);
 
-    const itemsContainer = container.querySelector('.array-items');
-    const addBtn = container.querySelector('.add-item-btn');
+    const itemsContainer = document.createElement('div');
+    itemsContainer.className = 'array-items';
+    container.appendChild(itemsContainer);
 
-    // Render existing items
     function renderItems() {
-      itemsContainer.innerHTML = '';
-      const items = getNestedValue(formData, path) || [];
+      itemsContainer.replaceChildren();
+      const value = Utils.getNestedValue(formData, path);
+      const items = Array.isArray(value) ? value : [];
+      const invalidArray = value !== undefined && !Array.isArray(value);
+
+      if (invalidArray) {
+        itemsContainer.appendChild(
+          createTextElement(
+            'p',
+            'field-error',
+            'Loaded value is not an array. Use "Replace with list" to correct it.'
+          )
+        );
+      }
 
       items.forEach((item, index) => {
-        const itemEl = buildArrayItem(itemType, `${path}[${index}]`, index, items.length, minItems);
-        itemsContainer.appendChild(itemEl);
+        itemsContainer.appendChild(
+          buildArrayItem(
+            itemType,
+            `${path}[${index}]`,
+            index,
+            items.length,
+            minItems,
+            path,
+            renderItems
+          )
+        );
       });
+
+      addButton.textContent = invalidArray ? 'Replace with list' : '+ Add';
+      addButton.disabled = isReadOnly(path)
+        || (Number.isInteger(maxItems) && items.length >= maxItems);
     }
 
-    addBtn.addEventListener('click', () => {
-      const items = getNestedValue(formData, path) || [];
+    addButton.addEventListener('click', () => {
+      const currentValue = Utils.getNestedValue(formData, path);
+      const items = Array.isArray(currentValue) ? currentValue : [];
+      if (Number.isInteger(maxItems) && items.length >= maxItems) {
+        return;
+      }
+
       items.push(getDefaultForType(itemType));
-      setNestedValue(formData, path, items);
+      Utils.setNestedValue(formData, path, items);
       renderItems();
       triggerChange();
     });
 
-    // Store render function for later use
     container.renderItems = renderItems;
     renderItems();
-
     return container;
   }
 
-  /**
-   * Build a single array item
-   */
-  function buildArrayItem(itemType, path, index, totalItems, minItems) {
+  function buildArrayItem(
+    itemType,
+    path,
+    index,
+    totalItems,
+    minItems,
+    arrayPath,
+    renderItems
+  ) {
     const container = document.createElement('div');
     container.className = 'array-item';
     container.dataset.path = path;
 
     const content = document.createElement('div');
     content.className = 'array-item-content';
-
-    // Resolve item type
-    let resolvedItemType = itemType;
-    if (itemType.kind === 'reference') {
-      resolvedItemType = schema.resolveType(itemType);
-    }
+    const resolvedItemType = resolveType(itemType);
 
     if (resolvedItemType && resolvedItemType.kind === 'struct') {
-      // Build fields for struct items
       for (const [fieldName, field] of Object.entries(resolvedItemType.fields)) {
-        const fieldEl = buildField(fieldName, field, `${path}.${fieldName}`);
-        content.appendChild(fieldEl);
+        content.appendChild(buildField(fieldName, field, `${path}.${fieldName}`));
       }
     } else {
-      // Simple type - single input
-      const fieldEl = buildField(`item-${index}`, { optional: false, ...itemType }, path);
-      content.appendChild(fieldEl);
+      content.appendChild(
+        buildField(`item-${index + 1}`, { optional: false, ...itemType }, path)
+      );
     }
 
     const controls = document.createElement('div');
     controls.className = 'array-item-controls';
 
-    const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'btn btn-small btn-danger';
-    removeBtn.textContent = '×';
-    removeBtn.disabled = totalItems <= minItems;
-    removeBtn.title = totalItems <= minItems ? `Minimum ${minItems} items required` : 'Remove';
-
-    removeBtn.addEventListener('click', () => {
-      // Get parent path and index
-      const match = path.match(/^(.+)\[(\d+)\]$/);
-      if (match) {
-        const arrayPath = match[1];
-        const itemIndex = parseInt(match[2]);
-        const items = getNestedValue(formData, arrayPath) || [];
-        items.splice(itemIndex, 1);
-        setNestedValue(formData, arrayPath, items);
-
-        // Re-render the array
-        const arrayContainer = document.querySelector(`[data-path="${arrayPath}"]`);
-        if (arrayContainer && arrayContainer.renderItems) {
-          arrayContainer.renderItems();
-        }
-        triggerChange();
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn btn-small btn-danger';
+    removeButton.textContent = '×';
+    removeButton.disabled = isReadOnly(path) || totalItems <= minItems;
+    removeButton.title = totalItems <= minItems
+      ? `Minimum ${minItems} items required`
+      : 'Remove';
+    removeButton.addEventListener('click', () => {
+      const items = Utils.getNestedValue(formData, arrayPath);
+      if (!Array.isArray(items)) {
+        return;
       }
+
+      items.splice(index, 1);
+      renderItems();
+      triggerChange();
     });
 
-    controls.appendChild(removeBtn);
+    controls.appendChild(removeButton);
     container.appendChild(content);
     container.appendChild(controls);
-
     return container;
   }
 
-  /**
-   * Build a nested struct field
-   */
   function buildNestedStructField(fieldName, field, resolvedType, path) {
     const container = document.createElement('div');
     container.className = 'form-field nested-object';
     container.dataset.path = path;
 
-    const required = !field.optional;
-
-    container.innerHTML = `
-      <label>
-        ${toLabel(fieldName)}
-        ${required ? '<span class="required-indicator">*</span>' : ''}
-      </label>
-      ${field.description ? `<p class="field-description">${field.description}</p>` : ''}
-    `;
+    container.appendChild(buildFieldLabel(fieldName, null, !field.optional));
+    appendDescription(container, field.description);
 
     const fieldsContainer = document.createElement('div');
     fieldsContainer.className = 'nested-fields';
-
     for (const [subFieldName, subField] of Object.entries(resolvedType.fields)) {
-      const fieldEl = buildField(subFieldName, subField, `${path}.${subFieldName}`);
-      fieldsContainer.appendChild(fieldEl);
+      fieldsContainer.appendChild(
+        buildField(subFieldName, subField, `${path}.${subFieldName}`)
+      );
     }
 
     container.appendChild(fieldsContainer);
     return container;
   }
 
-  /**
-   * Build a disjunction field (union type)
-   */
   function buildDisjunctionField(fieldName, field, resolvedType, path) {
-    // Check if it's an enum-like disjunction
     const enumValues = schema.getEnumValues(resolvedType);
     if (enumValues) {
-      return buildEnumField(fieldName, field, { kind: 'enum', values: enumValues }, path);
+      return buildEnumField(
+        fieldName,
+        field,
+        { kind: 'enum', values: enumValues },
+        path
+      );
     }
 
-    // For complex disjunctions (like ["default"] | [...string]), use array input
     const container = document.createElement('div');
     container.className = 'form-field';
     container.dataset.path = path;
 
     const id = generateId(fieldName);
     const required = !field.optional;
-    const currentValue = getNestedValue(formData, path);
+    const currentValue = Utils.getNestedValue(formData, path);
 
-    container.innerHTML = `
-      <label for="${id}">
-        ${toLabel(fieldName)}
-        ${required ? '<span class="required-indicator">*</span>' : ''}
-      </label>
-      ${field.description ? `<p class="field-description">${field.description}</p>` : ''}
-      <input type="text" id="${id}"
-             value="${Array.isArray(currentValue) ? currentValue.join(', ') : (currentValue || '')}"
-             placeholder="Enter values separated by commas, or 'default'"
-             ${required ? 'required' : ''}>
-      <p class="field-description">Use "default" or enter custom values separated by commas</p>
-    `;
+    container.appendChild(buildFieldLabel(fieldName, id, required));
+    appendDescription(container, field.description);
 
-    const input = container.querySelector('input');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = id;
+    input.value = Array.isArray(currentValue)
+      ? currentValue.join(', ')
+      : (currentValue || '');
+    input.placeholder = 'Enter values separated by commas, or "default"';
+    input.required = required;
+    input.disabled = isReadOnly(path);
     input.addEventListener('input', () => {
       const value = input.value.trim();
       if (value === 'default') {
-        setNestedValue(formData, path, ['default']);
+        Utils.setNestedValue(formData, path, ['default']);
       } else if (value) {
-        setNestedValue(formData, path, value.split(',').map(v => v.trim()).filter(v => v));
+        Utils.setNestedValue(
+          formData,
+          path,
+          value.split(',').map(item => item.trim()).filter(Boolean)
+        );
       } else {
-        deleteNestedValue(formData, path);
+        Utils.deleteNestedValue(formData, path);
       }
       triggerChange();
     });
 
+    container.appendChild(input);
+    container.appendChild(
+      createTextElement(
+        'p',
+        'field-description',
+        'Use "default" or enter custom values separated by commas'
+      )
+    );
     return container;
   }
 
-  /**
-   * Get default value for a type
-   */
   function getDefaultForType(typeValue) {
-    if (!typeValue) return '';
-
-    let resolved = typeValue;
-    if (typeValue.kind === 'reference') {
-      resolved = schema.resolveType(typeValue);
+    const resolved = resolveType(typeValue);
+    if (!resolved) {
+      return '';
     }
-
-    if (!resolved) return '';
 
     switch (resolved.kind) {
       case 'primitive':
-        if (resolved.type === 'bool') return false;
-        if (resolved.type === 'date') return '';
-        return '';
-      case 'struct':
-        const obj = {};
+        return resolved.type === 'bool' ? false : '';
+      case 'struct': {
+        const value = {};
         for (const [fieldName, field] of Object.entries(resolved.fields)) {
           if (!field.optional) {
-            obj[fieldName] = getDefaultForType(field);
+            value[fieldName] = getDefaultForType(field);
           }
         }
-        return obj;
-      case 'enum':
-        return '';
+        return value;
+      }
       case 'array':
+      case 'array-literal':
+      case 'disjunction':
         return [];
+      case 'enum':
       default:
         return '';
     }
   }
 
-  /**
-   * Update form display from current data
-   */
-  function updateFormFromData(container) {
-    // Update all input values
-    container.querySelectorAll('[data-path]').forEach(el => {
-      const path = el.dataset.path;
-      const value = getNestedValue(formData, path);
-
-      const input = el.querySelector('input, select, textarea');
-      if (input) {
-        if (input.type === 'checkbox') {
-          input.checked = !!value;
-        } else if (input.tagName === 'SELECT') {
-          input.value = value || '';
-        } else {
-          input.value = value || '';
-        }
-      }
-    });
-
-    // Re-render array fields
-    container.querySelectorAll('.array-field').forEach(el => {
-      if (el.renderItems) {
-        el.renderItems();
-      }
-    });
-  }
-
-  /**
-   * Clear all form data
-   */
   function clearForm() {
     formData = {};
     triggerChange();
   }
 
-  // Public API
   return {
     init,
     setFormData,
     getFormData,
+    setReadOnlyPaths,
+    isReadOnly,
     buildForm,
-    updateFormFromData,
+    buildField,
     clearForm,
     getDefaultForType,
     toLabel
   };
 })();
 
-// Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = FormBuilder;
 }

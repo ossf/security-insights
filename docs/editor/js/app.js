@@ -1,46 +1,31 @@
 /**
- * Security Insights Editor - Main Application
- *
- * Coordinates all modules:
- * - CUE Parser / Schema Fallback for schema loading
- * - FormBuilder for dynamic form generation
- * - Wizard for guided mode
- * - YamlExport for YAML generation and validation
- *
- * Features:
- * - Drag-and-drop file loading
- * - URL-based file loading
- * - Multi-repository support with parent file inheritance
- * - 5-second validation interval
- * - Mode switching (Form Editor / Wizard)
+ * Security Insights Editor application lifecycle.
  */
-
 const App = (function () {
   'use strict';
 
-  // State
+  const DEFAULT_SCHEMA_URL =
+    'https://raw.githubusercontent.com/ossf/security-insights/main/spec/schema.cue';
+
   let schema = null;
-  let formData = {};
-  let currentMode = 'form'; // 'form' or 'wizard'
+  let currentMode = 'form';
   let validationInterval = null;
   let lastValidation = null;
-
-  // Default schema URL
-  const DEFAULT_SCHEMA_URL = 'https://raw.githubusercontent.com/ossf/security-insights/main/spec/schema.cue';
-
-  // DOM Elements
+  let schemaLoadId = 0;
   let elements = {};
 
-  // Single maintainer info (for auto-populating)
-  let singleMaintainerInfo = null;
+  const state = {
+    exportData: {},
+    displayData: {},
+    readOnlyPaths: [],
+    dataLoaded: false,
+    loadId: 0,
+    loadController: null,
+    pendingParent: null
+  };
 
-  /**
-   * Initialize the application
-   */
   async function init() {
-    // Cache DOM elements
     elements = {
-      configPanel: document.getElementById('config-panel'),
       schemaUrl: document.getElementById('schema-url'),
       reloadSchemaBtn: document.getElementById('reload-schema-btn'),
       modeForm: document.getElementById('mode-form'),
@@ -61,10 +46,10 @@ const App = (function () {
       maintainerAffiliation: document.getElementById('maintainer-affiliation'),
       parentSection: document.getElementById('parent-section'),
       parentUrl: document.getElementById('parent-url'),
+      parentFetchBtn: document.getElementById('parent-fetch-btn'),
       parentFileInput: document.getElementById('parent-file-input'),
       parentBrowseBtn: document.getElementById('parent-browse-btn'),
       skipParentBtn: document.getElementById('skip-parent-btn'),
-      validationStatus: document.getElementById('validation-status'),
       statusIcon: document.getElementById('status-icon'),
       statusText: document.getElementById('status-text'),
       lastValidated: document.getElementById('last-validated'),
@@ -76,7 +61,6 @@ const App = (function () {
       wizardContent: document.getElementById('wizard-content'),
       wizardPrev: document.getElementById('wizard-prev'),
       wizardNext: document.getElementById('wizard-next'),
-      previewPanel: document.getElementById('preview-panel'),
       minimalOutput: document.getElementById('minimal-output'),
       copyYamlBtn: document.getElementById('copy-yaml-btn'),
       downloadYamlBtn: document.getElementById('download-yaml-btn'),
@@ -85,122 +69,186 @@ const App = (function () {
       errorList: document.getElementById('error-list')
     };
 
-    // Bind event handlers
     bindEventHandlers();
-
-    // Load schema
+    setSchemaControlsEnabled(false);
+    updateModeUI(false);
     await loadSchema();
-
-    // Start validation interval
     startValidationInterval();
-
-    // Initial UI state
-    updateModeUI();
-    updatePreview();
   }
 
-  /**
-   * Bind all event handlers
-   */
   function bindEventHandlers() {
-    // Schema reload
     elements.reloadSchemaBtn.addEventListener('click', loadSchema);
-
-    // Mode switching
     elements.modeForm.addEventListener('click', () => setMode('form'));
     elements.modeWizard.addEventListener('click', () => setMode('wizard'));
-
-    // File input
     elements.browseBtn.addEventListener('click', () => elements.fileInput.click());
     elements.fileInput.addEventListener('change', handleFileSelect);
-
-    // Drag and drop
     elements.dropZone.addEventListener('dragover', handleDragOver);
     elements.dropZone.addEventListener('dragleave', handleDragLeave);
     elements.dropZone.addEventListener('drop', handleDrop);
-
-    // URL loading
     elements.loadUrlBtn.addEventListener('click', handleUrlLoad);
-    elements.fileUrl.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') handleUrlLoad();
+    elements.fileUrl.addEventListener('keypress', event => {
+      if (event.key === 'Enter') {
+        handleUrlLoad();
+      }
     });
-
-    // Start fresh
     elements.startFreshBtn.addEventListener('click', startFresh);
-
-    // Paste YAML loading
     elements.loadPasteBtn.addEventListener('click', handlePasteLoad);
-
-    // Single maintainer checkbox
-    elements.singleMaintainerCheckbox.addEventListener('change', handleSingleMaintainerToggle);
-
-    // Parent file handling
-    elements.parentBrowseBtn.addEventListener('click', () => elements.parentFileInput.click());
+    elements.singleMaintainerCheckbox.addEventListener(
+      'change',
+      handleSingleMaintainerToggle
+    );
+    elements.parentFetchBtn.addEventListener('click', fetchPendingParent);
+    elements.parentBrowseBtn.addEventListener(
+      'click',
+      () => elements.parentFileInput.click()
+    );
     elements.parentFileInput.addEventListener('change', handleParentFileSelect);
     elements.skipParentBtn.addEventListener('click', skipParentFile);
-
-    // Wizard navigation
     elements.wizardPrev.addEventListener('click', wizardPrev);
     elements.wizardNext.addEventListener('click', wizardNext);
-
-    // YAML export options
     elements.minimalOutput.addEventListener('change', () => {
       YamlExport.setMinimalMode(elements.minimalOutput.checked);
       updatePreview();
+      runValidation();
     });
     elements.copyYamlBtn.addEventListener('click', copyYaml);
     elements.downloadYamlBtn.addEventListener('click', downloadYaml);
   }
 
-  /**
-   * Load schema from URL or fallback
-   */
+  function setSchemaControlsEnabled(enabled) {
+    [
+      elements.modeForm,
+      elements.modeWizard,
+      elements.fileInput,
+      elements.browseBtn,
+      elements.fileUrl,
+      elements.loadUrlBtn,
+      elements.startFreshBtn,
+      elements.yamlPaste,
+      elements.loadPasteBtn,
+      elements.singleMaintainerCheckbox,
+      elements.parentFileInput,
+      elements.parentBrowseBtn,
+      elements.skipParentBtn,
+      elements.minimalOutput,
+      elements.copyYamlBtn,
+      elements.downloadYamlBtn
+    ].forEach(element => {
+      if (element) {
+        element.disabled = !enabled;
+      }
+    });
+    elements.dropZone.classList.toggle('loading', !enabled);
+    updateParentFetchButton(enabled);
+  }
+
+  function updateParentFetchButton(schemaReady = !!schema) {
+    if (!elements.parentFetchBtn) {
+      return;
+    }
+    const pending = state.pendingParent;
+    elements.parentFetchBtn.disabled = !schemaReady
+      || !pending
+      || !pending.fetchUrl;
+  }
+
+  function deriveVersionUrl(schemaUrl) {
+    try {
+      const url = new URL(schemaUrl);
+      if (!url.pathname.endsWith('/spec/schema.cue')) {
+        return null;
+      }
+      url.pathname = url.pathname.replace(/\/spec\/schema\.cue$/, '/VERSION');
+      return url.toString();
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async function fetchSchemaVersion(schemaUrl) {
+    const versionUrl = deriveVersionUrl(schemaUrl);
+    if (!versionUrl) {
+      return null;
+    }
+    try {
+      const response = await fetch(versionUrl);
+      if (!response.ok) {
+        return null;
+      }
+      const version = (await response.text()).trim();
+      return /^v?[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)
+        ? version.replace(/^v/, '')
+        : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   async function loadSchema() {
-    const url = elements.schemaUrl.value || DEFAULT_SCHEMA_URL;
+    const requestId = ++schemaLoadId;
+    const url = elements.schemaUrl.value.trim() || DEFAULT_SCHEMA_URL;
+    setSchemaControlsEnabled(false);
     setStatus('loading', 'Loading schema...');
 
     try {
-      schema = await CueParser.fetchAndParse(url);
-      console.log('Schema loaded from URL:', url);
+      const [response, version] = await Promise.all([
+        fetch(url),
+        fetchSchemaVersion(url)
+      ]);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const source = await response.text();
+      if (requestId !== schemaLoadId) {
+        return;
+      }
+      schema = CueParser.parse(source, { version });
     } catch (error) {
-      console.warn('Failed to fetch schema, using fallback:', error);
+      if (requestId !== schemaLoadId) {
+        return;
+      }
+      console.warn('Failed to fetch schema, using generated fallback:', error);
       schema = SchemaFallback;
+      showToast('Schema fetch failed; using the generated fallback schema.', 'warning');
     }
 
-    // Initialize modules with schema
     FormBuilder.init(schema, handleFormChange);
-    Wizard.init(schema, handleWizardChange);
+    FormBuilder.setReadOnlyPaths(state.readOnlyPaths);
+    Wizard.init(schema, handleWizardChange, { resetStep: false });
     YamlExport.init(schema);
+    setSchemaControlsEnabled(true);
 
-    // Rebuild form if we have data
-    if (Object.keys(formData).length > 0) {
-      buildForm();
+    if (state.dataLoaded) {
+      rebuildActiveMode();
+      updatePreview();
+      runValidation();
+    } else {
+      setStatus('ready', 'Schema loaded');
     }
-
-    setStatus('ready', 'Schema loaded');
   }
 
-  /**
-   * Set editor mode
-   */
   function setMode(mode) {
+    if (!schema || (mode !== 'form' && mode !== 'wizard')) {
+      return;
+    }
     currentMode = mode;
-    updateModeUI();
+    updateModeUI(state.dataLoaded);
+    if (state.dataLoaded) {
+      runValidation();
+    }
   }
 
-  /**
-   * Update UI based on current mode
-   */
-  function updateModeUI() {
-    // Update mode buttons
+  function updateModeUI(rebuild = true) {
     elements.modeForm.classList.toggle('active', currentMode === 'form');
     elements.modeWizard.classList.toggle('active', currentMode === 'wizard');
-
-    // Show/hide editors
     elements.formEditor.classList.toggle('hidden', currentMode !== 'form');
     elements.wizardEditor.classList.toggle('hidden', currentMode !== 'wizard');
+    if (rebuild && state.dataLoaded) {
+      rebuildActiveMode();
+    }
+  }
 
-    // Rebuild current mode
+  function rebuildActiveMode() {
     if (currentMode === 'form') {
       buildForm();
     } else {
@@ -208,485 +256,464 @@ const App = (function () {
     }
   }
 
-  /**
-   * Build the form editor
-   */
   function buildForm() {
-    if (!schema) return;
-    FormBuilder.setFormData(formData);
+    if (!schema) {
+      return;
+    }
+    FormBuilder.setFormData(state.displayData);
+    FormBuilder.setReadOnlyPaths(state.readOnlyPaths);
     FormBuilder.buildForm(elements.formSections);
   }
 
-  /**
-   * Build the wizard
-   */
   function buildWizard() {
-    if (!schema) return;
-    Wizard.setFormData(formData);
+    if (!schema) {
+      return;
+    }
+    FormBuilder.setFormData(state.displayData);
+    FormBuilder.setReadOnlyPaths(state.readOnlyPaths);
+    Wizard.setFormData(state.displayData);
     Wizard.buildProgress(elements.wizardProgress);
     Wizard.buildContent(elements.wizardContent);
     updateWizardNav();
   }
 
-  /**
-   * Update wizard navigation buttons
-   */
   function updateWizardNav() {
     elements.wizardPrev.disabled = !Wizard.canGoPrev();
-
     const isLastStep = Wizard.getCurrentStep() === Wizard.getTotalSteps() - 1;
     elements.wizardNext.textContent = isLastStep ? 'Finish' : 'Next';
   }
 
-  /**
-   * Handle form data changes
-   */
+  function synchronizeEditedData(data) {
+    state.displayData = data;
+    state.exportData = EditorUtils.createExportData(data, state.readOnlyPaths);
+    FormBuilder.setFormData(state.displayData);
+    Wizard.setFormData(state.displayData);
+    YamlExport.setFormData(state.exportData);
+  }
+
   function handleFormChange(data) {
-    formData = data;
-    FormBuilder.setFormData(formData);
-    Wizard.setFormData(formData);
-    YamlExport.setFormData(formData);
+    synchronizeEditedData(data);
     updatePreview();
   }
 
-  /**
-   * Handle wizard changes
-   */
   function handleWizardChange(data, action) {
-    formData = data;
-    FormBuilder.setFormData(formData);
-    Wizard.setFormData(formData);
-    YamlExport.setFormData(formData);
-
+    synchronizeEditedData(data);
     if (action === 'navigate') {
       Wizard.buildProgress(elements.wizardProgress);
       Wizard.buildContent(elements.wizardContent);
       updateWizardNav();
     }
-
     updatePreview();
   }
 
-  /**
-   * Wizard previous step
-   */
   function wizardPrev() {
     if (Wizard.prevStep()) {
-      Wizard.buildProgress(elements.wizardProgress);
-      Wizard.buildContent(elements.wizardContent);
-      updateWizardNav();
+      buildWizard();
     }
   }
 
-  /**
-   * Wizard next step
-   */
   function wizardNext() {
     const isLastStep = Wizard.getCurrentStep() === Wizard.getTotalSteps() - 1;
-
     if (isLastStep) {
-      // On finish, switch to form mode for final editing
       setMode('form');
-      showToast('Wizard completed! You can now make final edits and download your file.', 'success');
+      showToast(
+        'Wizard completed. You can make final edits and download the file.',
+        'success'
+      );
     } else if (Wizard.nextStep()) {
-      Wizard.buildProgress(elements.wizardProgress);
-      Wizard.buildContent(elements.wizardContent);
-      updateWizardNav();
+      buildWizard();
     }
   }
 
-  /**
-   * Handle drag over
-   */
-  function handleDragOver(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    elements.dropZone.classList.add('dragover');
+  function handleDragOver(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (schema) {
+      elements.dropZone.classList.add('dragover');
+    }
   }
 
-  /**
-   * Handle drag leave
-   */
-  function handleDragLeave(e) {
-    e.preventDefault();
-    e.stopPropagation();
+  function handleDragLeave(event) {
+    event.preventDefault();
+    event.stopPropagation();
     elements.dropZone.classList.remove('dragover');
   }
 
-  /**
-   * Handle file drop
-   */
-  async function handleDrop(e) {
-    e.preventDefault();
-    e.stopPropagation();
+  async function handleDrop(event) {
+    event.preventDefault();
+    event.stopPropagation();
     elements.dropZone.classList.remove('dragover');
-
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      await loadFile(files[0]);
+    if (!schema) {
+      return;
+    }
+    if (event.dataTransfer.files.length > 0) {
+      await loadFile(event.dataTransfer.files[0]);
     }
   }
 
-  /**
-   * Handle file select from input
-   */
-  async function handleFileSelect(e) {
-    const files = e.target.files;
-    if (files.length > 0) {
-      await loadFile(files[0]);
-    }
-  }
-
-  /**
-   * Load a file
-   */
-  async function loadFile(file) {
+  async function handleFileSelect(event) {
     try {
-      setStatus('loading', 'Loading file...');
-      const content = await readFileContent(file);
-      const data = jsyaml.load(content);
-
-      // Check for project-si-source (parent file)
-      if (data.header && data.header['project-si-source']) {
-        await handleParentSiSource(data);
-      } else {
-        formData = data;
-        onDataLoaded();
+      if (event.target.files.length > 0) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        await loadFile(file);
       }
-    } catch (error) {
-      console.error('Error loading file:', error);
-      setStatus('error', `Error: ${error.message}`);
-      showToast(`Failed to load file: ${error.message}`, 'error');
+    } finally {
+      event.target.value = '';
     }
   }
 
-  /**
-   * Read file content as text
-   */
+  function makeStaleLoadError() {
+    const error = new Error('A newer document load superseded this request');
+    error.name = 'StaleLoadError';
+    return error;
+  }
+
+  function isStaleLoadError(error) {
+    return error && (error.name === 'StaleLoadError' || error.name === 'AbortError');
+  }
+
+  function beginDocumentLoad(message) {
+    state.loadId += 1;
+    if (state.loadController) {
+      state.loadController.abort();
+    }
+    if (state.pendingParent) {
+      state.pendingParent.reject(makeStaleLoadError());
+      state.pendingParent = null;
+    }
+    state.loadController = new AbortController();
+    elements.parentSection.classList.add('hidden');
+    setStatus('loading', message);
+    updateParentFetchButton();
+    return {
+      id: state.loadId,
+      signal: state.loadController.signal
+    };
+  }
+
+  function ensureCurrentLoad(loadId) {
+    if (loadId !== state.loadId) {
+      throw makeStaleLoadError();
+    }
+  }
+
+  async function loadFile(file) {
+    const load = beginDocumentLoad('Loading file...');
+    try {
+      const content = await readFileContent(file);
+      ensureCurrentLoad(load.id);
+      const data = EditorUtils.parseYamlDocument(content);
+      await handleLoadedDocument(data, load.id);
+      ensureCurrentLoad(load.id);
+      showToast('YAML file loaded successfully.', 'success');
+    } catch (error) {
+      handleLoadError(error, 'Failed to load file');
+    }
+  }
+
   function readFileContent(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = (e) => reject(new Error('Failed to read file'));
+      reader.onload = event => resolve(event.target.result);
+      reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
   }
 
-  /**
-   * Convert GitHub blob/tree URLs to raw content URLs
-   * e.g., https://github.com/owner/repo/blob/branch/path/file.yml
-   * becomes https://raw.githubusercontent.com/owner/repo/branch/path/file.yml
-   */
   function convertToRawGitHubUrl(url) {
-    // Match GitHub blob URLs: github.com/owner/repo/blob/ref/path
-    const blobMatch = url.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/(.+)$/);
+    const blobMatch = url.match(
+      /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/
+    );
     if (blobMatch) {
       const [, owner, repo, rest] = blobMatch;
       return `https://raw.githubusercontent.com/${owner}/${repo}/${rest}`;
     }
 
-    // Match GitHub tree URLs (for directories, though we can't fetch those)
-    const treeMatch = url.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/tree\/(.+)$/);
+    const treeMatch = url.match(
+      /^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/tree\/(.+)$/
+    );
     if (treeMatch) {
       const [, owner, repo, rest] = treeMatch;
       return `https://raw.githubusercontent.com/${owner}/${repo}/${rest}`;
     }
-
-    // Return original URL if not a GitHub blob/tree URL
     return url;
   }
 
-  /**
-   * Handle URL load button
-   */
+  function normalizeHttpUrl(value) {
+    if (typeof value !== 'string') {
+      return null;
+    }
+    try {
+      const url = new URL(value);
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return null;
+      }
+      return convertToRawGitHubUrl(url.toString());
+    } catch (error) {
+      return null;
+    }
+  }
+
   async function handleUrlLoad() {
-    let url = elements.fileUrl.value.trim();
+    const enteredUrl = elements.fileUrl.value.trim();
+    const url = normalizeHttpUrl(enteredUrl);
     if (!url) {
-      showToast('Please enter a URL', 'error');
+      showToast('Please enter a valid http(s) URL.', 'error');
       return;
     }
 
-    // Convert GitHub blob URLs to raw content URLs
-    url = convertToRawGitHubUrl(url);
-
+    const load = beginDocumentLoad('Loading from URL...');
     try {
-      setStatus('loading', 'Loading from URL...');
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: load.signal });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      const content = await response.text();
-      const data = jsyaml.load(content);
-
-      // Check for project-si-source
-      if (data.header && data.header['project-si-source']) {
-        await handleParentSiSource(data);
-      } else {
-        formData = data;
-        onDataLoaded();
-      }
+      const data = EditorUtils.parseYamlDocument(await response.text());
+      ensureCurrentLoad(load.id);
+      await handleLoadedDocument(data, load.id);
+      ensureCurrentLoad(load.id);
+      showToast('YAML URL loaded successfully.', 'success');
     } catch (error) {
-      console.error('Error loading URL:', error);
-      setStatus('error', `Error: ${error.message}`);
-      showToast(`Failed to load URL: ${error.message}`, 'error');
+      handleLoadError(error, 'Failed to load URL');
     }
   }
 
-  /**
-   * Handle parent SI source
-   */
-  async function handleParentSiSource(childData) {
-    let parentUrl = childData.header['project-si-source'];
-
-    // Convert GitHub blob URLs to raw content URLs
-    parentUrl = convertToRawGitHubUrl(parentUrl);
-
-    try {
-      // Try to fetch parent
-      const response = await fetch(parentUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const content = await response.text();
-      const parentData = jsyaml.load(content);
-
-      // Merge parent data with child
-      formData = mergeParentChild(parentData, childData);
-      onDataLoaded();
-    } catch (error) {
-      console.warn('Failed to fetch parent SI file:', error);
-
-      // Show parent file upload section
-      elements.parentUrl.textContent = parentUrl;
-      elements.parentSection.classList.remove('hidden');
-
-      // Store child data for later merging
-      window._pendingChildData = childData;
-    }
-  }
-
-  /**
-   * Handle parent file select
-   */
-  async function handleParentFileSelect(e) {
-    const files = e.target.files;
-    if (files.length === 0) return;
-
-    try {
-      const content = await readFileContent(files[0]);
-      const parentData = jsyaml.load(content);
-
-      // Merge with pending child data
-      const childData = window._pendingChildData || {};
-      formData = mergeParentChild(parentData, childData);
-
-      elements.parentSection.classList.add('hidden');
-      delete window._pendingChildData;
-
-      onDataLoaded();
-    } catch (error) {
-      console.error('Error loading parent file:', error);
-      showToast(`Failed to load parent file: ${error.message}`, 'error');
-    }
-  }
-
-  /**
-   * Skip parent file and use child data as-is
-   */
-  function skipParentFile() {
-    const childData = window._pendingChildData || {};
-    formData = childData;
-
-    elements.parentSection.classList.add('hidden');
-    delete window._pendingChildData;
-
-    onDataLoaded();
-    showToast('Proceeding without parent file. Some project data may be missing.', 'warning');
-  }
-
-  /**
-   * Handle loading from pasted YAML content
-   */
-  function handlePasteLoad() {
+  async function handlePasteLoad() {
     const content = elements.yamlPaste.value.trim();
     if (!content) {
-      showToast('Please paste YAML content first', 'error');
+      showToast('Please paste YAML content first.', 'error');
       return;
     }
 
+    const load = beginDocumentLoad('Parsing YAML...');
     try {
-      setStatus('loading', 'Parsing YAML...');
-      const data = jsyaml.load(content);
-
-      if (!data || typeof data !== 'object') {
-        throw new Error('Invalid YAML: expected an object');
-      }
-
-      // Check for project-si-source (parent file)
-      if (data.header && data.header['project-si-source']) {
-        handleParentSiSource(data);
-      } else {
-        formData = data;
-        onDataLoaded();
-      }
-
-      showToast('YAML loaded successfully!', 'success');
+      const data = EditorUtils.parseYamlDocument(content);
+      await handleLoadedDocument(data, load.id);
+      ensureCurrentLoad(load.id);
+      showToast('Pasted YAML loaded successfully.', 'success');
     } catch (error) {
-      console.error('Error parsing pasted YAML:', error);
-      setStatus('error', `Error: ${error.message}`);
-      showToast(`Failed to parse YAML: ${error.message}`, 'error');
+      handleLoadError(error, 'Failed to parse YAML');
     }
   }
 
-  /**
-   * Handle single maintainer checkbox toggle
-   */
+  function handleLoadError(error, prefix) {
+    if (isStaleLoadError(error)) {
+      return;
+    }
+    console.error(prefix, error);
+    setStatus('error', `Error: ${error.message}`);
+    showToast(`${prefix}: ${error.message}`, 'error');
+  }
+
+  function getProjectSource(data) {
+    return data
+      && EditorUtils.isPlainMapping(data.header)
+      && data.header['project-si-source'] !== undefined
+      && data.header['project-si-source'] !== null
+      && data.header['project-si-source'] !== ''
+      ? data.header['project-si-source']
+      : null;
+  }
+
+  async function handleLoadedDocument(childData, loadId) {
+    ensureCurrentLoad(loadId);
+    const source = getProjectSource(childData);
+    if (source === null) {
+      finishDocumentLoad(childData, null, loadId);
+      return;
+    }
+    await requestParentDecision(childData, source, loadId);
+  }
+
+  function requestParentDecision(childData, source, loadId) {
+    ensureCurrentLoad(loadId);
+    const declaredUrl = typeof source === 'string' ? source : String(source);
+    const fetchUrl = normalizeHttpUrl(source);
+    elements.parentUrl.textContent = declaredUrl;
+    elements.parentSection.classList.remove('hidden');
+    setStatus(
+      'warning',
+      fetchUrl
+        ? 'Choose how to handle the referenced parent file.'
+        : 'The parent URL is invalid. Upload the parent file or skip it.'
+    );
+
+    return new Promise((resolve, reject) => {
+      state.pendingParent = {
+        loadId,
+        childData: EditorUtils.cloneData(childData),
+        declaredUrl,
+        fetchUrl,
+        resolve,
+        reject
+      };
+      updateParentFetchButton();
+      if (!fetchUrl) {
+        showToast(
+          'project-si-source must be a valid http(s) URL before it can be fetched.',
+          'warning'
+        );
+      }
+    });
+  }
+
+  function requirePendingParent() {
+    const pending = state.pendingParent;
+    if (!pending) {
+      const error = new Error('No pending child document is waiting for a parent');
+      setStatus('error', error.message);
+      showToast(error.message, 'error');
+      throw error;
+    }
+    ensureCurrentLoad(pending.loadId);
+    return pending;
+  }
+
+  async function fetchPendingParent() {
+    let pending;
+    try {
+      pending = requirePendingParent();
+      if (!pending.fetchUrl) {
+        throw new Error('The parent URL is not a valid http(s) URL');
+      }
+      setStatus('loading', 'Fetching parent file with your consent...');
+      const response = await fetch(pending.fetchUrl, {
+        signal: state.loadController.signal
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const parentData = EditorUtils.parseYamlDocument(await response.text());
+      ensureCurrentLoad(pending.loadId);
+      completePendingParent(parentData, pending);
+    } catch (error) {
+      if (isStaleLoadError(error)) {
+        return;
+      }
+      console.error('Failed to fetch parent file:', error);
+      setStatus('error', `Parent fetch failed: ${error.message}`);
+      showToast(`Failed to fetch parent file: ${error.message}`, 'error');
+    }
+  }
+
+  async function handleParentFileSelect(event) {
+    let pending;
+    try {
+      if (event.target.files.length === 0) {
+        return;
+      }
+      pending = requirePendingParent();
+      setStatus('loading', 'Loading uploaded parent file...');
+      const content = await readFileContent(event.target.files[0]);
+      const parentData = EditorUtils.parseYamlDocument(content);
+      ensureCurrentLoad(pending.loadId);
+      completePendingParent(parentData, pending);
+    } catch (error) {
+      if (!isStaleLoadError(error)) {
+        console.error('Failed to load parent file:', error);
+        setStatus('error', `Parent upload failed: ${error.message}`);
+        showToast(`Failed to load parent file: ${error.message}`, 'error');
+      }
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  function skipParentFile() {
+    try {
+      completePendingParent(null);
+      showToast(
+        'Continuing without the parent project context. The child export is unchanged.',
+        'warning'
+      );
+    } catch (error) {
+      if (!isStaleLoadError(error)) {
+        console.error('Failed to skip parent file:', error);
+      }
+    }
+  }
+
+  function completePendingParent(parentData, expectedPending = null) {
+    const pending = requirePendingParent();
+    if (expectedPending && pending !== expectedPending) {
+      throw makeStaleLoadError();
+    }
+    state.pendingParent = null;
+    elements.parentSection.classList.add('hidden');
+    updateParentFetchButton();
+    finishDocumentLoad(pending.childData, parentData, pending.loadId);
+    pending.resolve();
+    if (parentData && !EditorUtils.isPlainMapping(parentData.project)) {
+      showToast('The parent file does not contain project information.', 'warning');
+    }
+  }
+
+  function finishDocumentLoad(childData, parentData, loadId) {
+    ensureCurrentLoad(loadId);
+    const presentation = EditorUtils.createDisplayData(childData, parentData);
+    state.exportData = EditorUtils.cloneData(childData);
+    state.displayData = presentation.displayData;
+    state.readOnlyPaths = presentation.readOnlyPaths;
+    state.dataLoaded = true;
+    FormBuilder.setReadOnlyPaths(state.readOnlyPaths);
+    FormBuilder.setFormData(state.displayData);
+    Wizard.setFormData(state.displayData);
+    YamlExport.setFormData(state.exportData);
+    elements.inputSection.classList.add('hidden');
+    elements.editorMain.classList.remove('hidden');
+    updateModeUI(true);
+    updatePreview();
+    runValidation();
+  }
+
   function handleSingleMaintainerToggle() {
-    if (elements.singleMaintainerCheckbox.checked) {
-      elements.singleMaintainerFields.classList.remove('hidden');
-    } else {
-      elements.singleMaintainerFields.classList.add('hidden');
-      singleMaintainerInfo = null;
-    }
+    elements.singleMaintainerFields.classList.toggle(
+      'hidden',
+      !elements.singleMaintainerCheckbox.checked
+    );
   }
 
-  /**
-   * Get single maintainer info from the form
-   */
   function getSingleMaintainerInfo() {
     if (!elements.singleMaintainerCheckbox.checked) {
       return null;
     }
-
     const name = elements.maintainerName.value.trim();
     const email = elements.maintainerEmail.value.trim();
     const affiliation = elements.maintainerAffiliation.value.trim();
-
-    if (!name && !email) {
+    if (!name && !email && !affiliation) {
       return null;
     }
-
-    return { name, email, affiliation: affiliation || undefined };
+    return { name, email, affiliation };
   }
 
-  /**
-   * Merge parent and child data
-   */
-  function mergeParentChild(parent, child) {
-    const merged = { ...parent };
-
-    // Child header overrides parent
-    merged.header = { ...parent.header, ...child.header };
-
-    // Child project data merges with parent
-    if (child.project) {
-      merged.project = { ...parent.project, ...child.project };
-    }
-
-    // Child repository overrides parent
-    if (child.repository) {
-      merged.repository = child.repository;
-    }
-
-    return merged;
-  }
-
-  /**
-   * Start fresh with empty form
-   */
   function startFresh() {
-    // Initialize with today's date and schema version
+    const load = beginDocumentLoad('Starting a new document...');
     const today = new Date().toISOString().split('T')[0];
-
-    // Get single maintainer info if provided
-    singleMaintainerInfo = getSingleMaintainerInfo();
-
-    formData = {
-      header: {
-        'schema-version': '2.2.0',
-        'last-updated': today,
-        'last-reviewed': today,
-        url: ''
-      }
-    };
-
-    // Pre-populate with single maintainer info if provided
-    if (singleMaintainerInfo) {
-      const maintainerContact = {};
-      if (singleMaintainerInfo.name) maintainerContact.name = singleMaintainerInfo.name;
-      if (singleMaintainerInfo.email) maintainerContact.email = singleMaintainerInfo.email;
-      if (singleMaintainerInfo.affiliation) maintainerContact.affiliation = singleMaintainerInfo.affiliation;
-
-      // Pre-populate project administrators
-      formData.project = {
-        administrators: [maintainerContact]
-      };
-
-      // Pre-populate repository core-team and security contacts
-      formData.repository = {
-        'core-team': [maintainerContact],
-        security: {
-          contacts: [{
-            type: 'email',
-            value: singleMaintainerInfo.email || ''
-          }]
-        }
-      };
-
-      // Also pre-populate vulnerability reporting contact
-      formData.project['vulnerability-reporting'] = {
-        'accepts-vulnerability-reports': true,
-        'bug-bounty-available': false,
-        'in-scope': [],
-        'out-scope': [],
-        comment: '',
-        'security-policy': '',
-        contacts: [{
-          type: 'email',
-          value: singleMaintainerInfo.email || ''
-        }]
-      };
-    }
-
-    onDataLoaded();
-    showToast('Started fresh. Fill in the form to create your Security Insights file.', 'success');
-  }
-
-  /**
-   * Called after data is loaded
-   */
-  function onDataLoaded() {
-    FormBuilder.setFormData(formData);
-    Wizard.setFormData(formData);
-    YamlExport.setFormData(formData);
-
-    // Hide input section, show editor
-    elements.inputSection.classList.add('hidden');
-    elements.editorMain.classList.remove('hidden');
-
-    // Build current mode
-    if (currentMode === 'form') {
-      buildForm();
+    const data = EditorUtils.createFreshDocument(
+      schema && schema.version,
+      today,
+      getSingleMaintainerInfo()
+    );
+    finishDocumentLoad(data, null, load.id);
+    if (!schema || !schema.version) {
+      showToast(
+        'The loaded schema has no version metadata. Enter schema-version before export.',
+        'warning'
+      );
     } else {
-      buildWizard();
+      showToast('Started a new Security Insights document.', 'success');
     }
-
-    updatePreview();
-    runValidation();
-    setStatus('valid', 'File loaded');
   }
 
-  /**
-   * Update YAML preview
-   */
   function updatePreview() {
-    YamlExport.setFormData(formData);
+    if (!schema || !state.dataLoaded) {
+      return;
+    }
+    YamlExport.setFormData(state.exportData);
     YamlExport.updatePreview(elements.yamlOutput);
   }
 
-  /**
-   * Start validation interval (every 5 seconds)
-   */
   function startValidationInterval() {
     if (validationInterval) {
       clearInterval(validationInterval);
@@ -694,19 +721,13 @@ const App = (function () {
     validationInterval = setInterval(runValidation, 5000);
   }
 
-  /**
-   * Run validation
-   */
   function runValidation() {
-    if (!schema || Object.keys(formData).length === 0) {
-      return;
+    if (!schema || !state.dataLoaded) {
+      return [];
     }
-
-    YamlExport.setFormData(formData);
+    YamlExport.setFormData(state.exportData);
     const errors = YamlExport.validate();
     lastValidation = new Date();
-
-    // Update status
     if (errors.length === 0) {
       setStatus('valid', 'Valid');
       elements.errorPanel.classList.add('hidden');
@@ -714,143 +735,111 @@ const App = (function () {
       setStatus('invalid', `${errors.length} error(s)`);
       showErrors(errors);
     }
-
-    // Update last validated time
-    elements.lastValidated.textContent = `Last validated: ${lastValidation.toLocaleTimeString()}`;
-
-    // Mark fields with errors
+    elements.lastValidated.textContent =
+      `Last validated: ${lastValidation.toLocaleTimeString()}`;
     markFieldErrors(errors);
+    return errors;
   }
 
-  /**
-   * Show validation errors
-   */
   function showErrors(errors) {
-    elements.errorList.innerHTML = '';
+    elements.errorList.replaceChildren();
     errors.forEach(error => {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${error.path || 'Root'}:</strong> ${error.message}`;
-      li.addEventListener('click', () => scrollToField(error.path));
-      li.style.cursor = 'pointer';
-      elements.errorList.appendChild(li);
+      const item = document.createElement('li');
+      const path = document.createElement('strong');
+      path.textContent = `${error.path || 'Root'}:`;
+      item.appendChild(path);
+      item.appendChild(document.createTextNode(` ${error.message}`));
+      item.addEventListener('click', () => scrollToField(error.path));
+      item.style.cursor = 'pointer';
+      elements.errorList.appendChild(item);
     });
     elements.errorPanel.classList.remove('hidden');
   }
 
-  /**
-   * Mark fields with errors in the form
-   */
   function markFieldErrors(errors) {
-    // Clear previous errors
-    document.querySelectorAll('.form-field.has-error').forEach(el => {
-      el.classList.remove('has-error');
-      const errorMsg = el.querySelector('.field-error');
-      if (errorMsg) errorMsg.remove();
+    document.querySelectorAll('[data-path].has-error').forEach(element => {
+      element.classList.remove('has-error');
+      const message = element.querySelector('[data-validation-error]');
+      if (message) {
+        message.remove();
+      }
     });
 
-    // Mark new errors
     errors.forEach(error => {
-      const fieldEl = document.querySelector(`[data-path="${error.path}"]`);
-      if (fieldEl) {
-        fieldEl.classList.add('has-error');
-
-        // Add error message if not present
-        if (!fieldEl.querySelector('.field-error')) {
-          const errorMsg = document.createElement('div');
-          errorMsg.className = 'field-error';
-          errorMsg.textContent = error.message;
-          fieldEl.appendChild(errorMsg);
-        }
+      const root = currentMode === 'form' ? elements.formEditor : elements.wizardEditor;
+      const field = EditorUtils.findByDataPath(root, error.path);
+      if (!field) {
+        return;
+      }
+      field.classList.add('has-error');
+      if (!field.querySelector('[data-validation-error]')) {
+        const message = document.createElement('div');
+        message.className = 'field-error';
+        message.dataset.validationError = 'true';
+        message.textContent = error.message;
+        field.appendChild(message);
       }
     });
   }
 
-  /**
-   * Scroll to a field by path
-   */
   function scrollToField(path) {
-    const fieldEl = document.querySelector(`[data-path="${path}"]`);
-    if (fieldEl) {
-      fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      fieldEl.classList.add('highlight');
-      setTimeout(() => fieldEl.classList.remove('highlight'), 2000);
+    const root = currentMode === 'form' ? elements.formEditor : elements.wizardEditor;
+    const field = EditorUtils.findByDataPath(root, path);
+    if (!field) {
+      return;
     }
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    field.classList.add('highlight');
+    setTimeout(() => field.classList.remove('highlight'), 2000);
   }
 
-  /**
-   * Set validation status
-   */
   function setStatus(type, message) {
     elements.statusIcon.className = 'status-icon';
-
-    switch (type) {
-      case 'valid':
-        elements.statusIcon.classList.add('valid');
-        elements.statusIcon.textContent = '●';
-        break;
-      case 'invalid':
-        elements.statusIcon.classList.add('invalid');
-        elements.statusIcon.textContent = '●';
-        break;
-      case 'loading':
-        elements.statusIcon.classList.add('warning');
-        elements.statusIcon.textContent = '○';
-        break;
-      case 'error':
-        elements.statusIcon.classList.add('invalid');
-        elements.statusIcon.textContent = '✕';
-        break;
-      default:
-        elements.statusIcon.textContent = '●';
+    if (type === 'valid') {
+      elements.statusIcon.classList.add('valid');
+      elements.statusIcon.textContent = '●';
+    } else if (type === 'invalid' || type === 'error') {
+      elements.statusIcon.classList.add('invalid');
+      elements.statusIcon.textContent = type === 'error' ? '✕' : '●';
+    } else if (type === 'loading' || type === 'warning') {
+      elements.statusIcon.classList.add('warning');
+      elements.statusIcon.textContent = type === 'loading' ? '○' : '●';
+    } else {
+      elements.statusIcon.textContent = '●';
     }
-
     elements.statusText.textContent = message;
   }
 
-  /**
-   * Copy YAML to clipboard
-   */
   async function copyYaml() {
     const success = await YamlExport.copyToClipboard();
-    if (success) {
-      showToast('YAML copied to clipboard!', 'success');
-    } else {
-      showToast('Failed to copy to clipboard', 'error');
-    }
+    showToast(
+      success ? 'YAML copied to clipboard.' : 'Failed to copy YAML.',
+      success ? 'success' : 'error'
+    );
   }
 
-  /**
-   * Download YAML file
-   */
   function downloadYaml() {
     YamlExport.download();
-    showToast('File downloaded!', 'success');
+    showToast('YAML download started.', 'success');
   }
 
-  /**
-   * Show toast notification
-   */
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
     document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
   }
 
-  // Initialize on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
 
-  // Public API (for debugging)
   return {
-    getFormData: () => formData,
+    getFormData: () => state.exportData,
+    getDisplayData: () => state.displayData,
     getSchema: () => schema,
     runValidation
   };

@@ -520,15 +520,37 @@
   margin-top: var(--spacing-xs);
 }
 
+.form-field.highlight,
+.form-section.highlight,
+.wizard-field.highlight {
+  animation: fieldHighlight 2s ease;
+  outline: 3px solid var(--color-warning);
+  outline-offset: 2px;
+}
+
+@keyframes fieldHighlight {
+  from {
+    background: rgba(255, 193, 7, 0.35);
+  }
+
+  to {
+    background: transparent;
+  }
+}
+
 /* Read-only fields */
-.form-field input[readonly] {
+.form-field input[readonly],
+.form-field input:disabled,
+.form-field textarea:disabled,
+.form-field select:disabled {
   background-color: var(--color-bg-alt);
   color: var(--color-text-muted);
   cursor: not-allowed;
   border-style: dashed;
 }
 
-.form-field .read-only-note {
+.form-field .read-only-note,
+.inherited-note {
   font-style: italic;
   color: var(--color-text-muted);
   margin-top: var(--spacing-xs);
@@ -842,6 +864,10 @@
 
 .toast.error {
   background: var(--color-error);
+}
+
+.toast.warning {
+  background: #8a6500;
 }
 
 @keyframes slideIn {
