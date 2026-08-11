@@ -60,10 +60,6 @@ navigation:
     path: schema.md
   - name: Editor
     path: editor/index.html
-  - name: About
-    children:
-      - path: index.md
-      - path: FAQ.md
   - name: FAQ
     path: FAQ.md
   - name: Governance
@@ -93,4 +89,3 @@ exclude:
   - roadmap/
   - threat-model/
   - user-story.md
-
