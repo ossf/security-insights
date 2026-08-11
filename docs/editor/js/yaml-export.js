@@ -1,164 +1,174 @@
 /**
- * YAML Export - Generates YAML output from form data
- *
- * Features:
- * - Convert form data to valid Security Insights YAML
- * - Minimal mode (required fields only) vs full output
- * - Live preview updates
- * - Download functionality
- * - Copy to clipboard
+ * YAML generation and schema-aware validation for the Security Insights editor.
  */
-
-const YamlExport = (function() {
+const YamlExport = (function () {
   'use strict';
+
+  const Utils = typeof EditorUtils !== 'undefined'
+    ? EditorUtils
+    : require('./editor-utils.js');
 
   let schema = null;
   let formData = {};
   let minimalMode = false;
 
-  /**
-   * Initialize with schema
-   */
   function init(schemaAST) {
     schema = schemaAST;
   }
 
-  /**
-   * Set form data
-   */
   function setFormData(data) {
     formData = data || {};
   }
 
-  /**
-   * Set minimal mode
-   */
   function setMinimalMode(minimal) {
-    minimalMode = minimal;
+    minimalMode = !!minimal;
   }
 
-  /**
-   * Check if minimal mode is enabled
-   */
   function isMinimalMode() {
     return minimalMode;
   }
 
-  /**
-   * Clean data by removing empty values
-   */
-  function cleanData(data, typeDef, minimalOnly = false) {
-    if (data === null || data === undefined) {
+  function resolveType(typeDef) {
+    return typeDef && typeDef.kind === 'reference'
+      ? schema.resolveType(typeDef)
+      : typeDef;
+  }
+
+  function shouldRetainOptionalField(path, key) {
+    return path === ''
+      && (key === 'project' || key === 'repository')
+      || path === 'header'
+      && key === 'project-si-source';
+  }
+
+  function cleanData(data, typeDef, minimalOnly = false, context = {}) {
+    if (data === null || data === undefined || data === '') {
       return undefined;
     }
 
-    if (Array.isArray(data)) {
-      const cleaned = data
-        .map((item, index) => {
-          const itemType = typeDef && typeDef.itemType;
-          const resolvedItemType = itemType && itemType.kind === 'reference'
-            ? schema.resolveType(itemType)
-            : itemType;
-          return cleanData(item, resolvedItemType, minimalOnly);
-        })
-        .filter(item => item !== undefined && item !== null && item !== '');
+    const path = context.path || '';
+    const preserveEmpty = context.preserveEmpty
+      || (typeDef && typeDef.optional === false);
 
-      return cleaned.length > 0 ? cleaned : undefined;
+    if (Array.isArray(data)) {
+      const resolvedType = resolveType(typeDef);
+      const itemType = resolvedType && resolvedType.itemType;
+      const cleaned = data
+        .map((item, index) => cleanData(item, itemType, minimalOnly, {
+          path: `${path}[${index}]`,
+          preserveEmpty: true
+        }))
+        .filter(item => item !== undefined);
+
+      return cleaned.length > 0 || preserveEmpty ? cleaned : undefined;
     }
 
-    if (typeof data === 'object') {
+    if (Utils.isPlainMapping(data)) {
       const cleaned = {};
-      const resolvedType = typeDef && typeDef.kind === 'reference'
-        ? schema.resolveType(typeDef)
-        : typeDef;
+      const resolvedType = resolveType(typeDef);
 
       for (const [key, value] of Object.entries(data)) {
-        const fieldDef = resolvedType && resolvedType.fields && resolvedType.fields[key];
+        const fieldDef = resolvedType
+          && resolvedType.kind === 'struct'
+          && resolvedType.fields
+          && resolvedType.fields[key];
+        const fieldPath = path ? `${path}.${key}` : key;
 
-        // In minimal mode, skip optional fields
-        if (minimalOnly && fieldDef && fieldDef.optional) {
+        if (!fieldDef) {
+          cleaned[key] = Utils.cloneData(value);
           continue;
         }
 
-        const cleanedValue = cleanData(value, fieldDef, minimalOnly);
+        if (
+          minimalOnly
+          && fieldDef.optional
+          && !shouldRetainOptionalField(path, key)
+        ) {
+          continue;
+        }
 
-        if (cleanedValue !== undefined && cleanedValue !== null && cleanedValue !== '') {
+        const cleanedValue = cleanData(value, fieldDef, minimalOnly, {
+          path: fieldPath,
+          keepEmptyObject: path === ''
+            && (key === 'header' || key === 'project' || key === 'repository')
+        });
+
+        if (cleanedValue !== undefined) {
           cleaned[key] = cleanedValue;
         }
       }
 
-      return Object.keys(cleaned).length > 0 ? cleaned : undefined;
-    }
-
-    // Primitive values
-    if (data === '' || data === null || data === undefined) {
+      if (Object.keys(cleaned).length > 0 || context.keepEmptyObject || preserveEmpty) {
+        return cleaned;
+      }
       return undefined;
     }
 
     return data;
   }
 
-  /**
-   * Generate YAML string from form data
-   */
-  function generateYaml() {
-    if (!formData || Object.keys(formData).length === 0) {
+  function getExportData(data = formData, minimalOnly = minimalMode) {
+    const rootType = schema ? schema.getType('#SecurityInsights') : null;
+    return cleanData(data, rootType, minimalOnly, { path: '', keepEmptyObject: true }) || {};
+  }
+
+  function getYamlParser() {
+    if (typeof jsyaml !== 'undefined') {
+      return jsyaml;
+    }
+    if (typeof require === 'function') {
+      return require('js-yaml');
+    }
+    throw new Error('YAML parser is not available');
+  }
+
+  function generateYaml(data = formData, minimalOnly = minimalMode) {
+    if (!data || Object.keys(data).length === 0) {
       return '# No data to export\n# Use the form to enter your Security Insights data';
     }
 
     try {
-      const rootType = schema ? schema.getType('#SecurityInsights') : null;
-      const cleaned = cleanData(formData, rootType, minimalMode);
-
-      if (!cleaned || Object.keys(cleaned).length === 0) {
+      const cleaned = getExportData(data, minimalOnly);
+      if (Object.keys(cleaned).length === 0) {
         return '# No data to export\n# Use the form to enter your Security Insights data';
       }
 
-      // Use js-yaml to dump
-      const yamlOptions = {
+      const yaml = getYamlParser().dump(cleaned, {
         indent: 2,
         lineWidth: 120,
         noRefs: true,
         sortKeys: false,
         quotingType: '"',
         forceQuotes: false
-      };
+      });
+      const schemaVersion = Utils.getSchemaVersion(cleaned, schema);
+      const commentLines = [
+        '# Security Insights file generated by the Security Insights Editor'
+      ];
+      if (schemaVersion) {
+        commentLines.push(`# Schema version: ${schemaVersion}`);
+      }
+      commentLines.push(`# Generated: ${new Date().toISOString().split('T')[0]}`);
 
-      let yaml = jsyaml.dump(cleaned, yamlOptions);
-
-      // Add header comment
-      yaml = `# Security Insights file generated by the Security Insights Editor
-# Schema version: ${cleaned.header && cleaned.header['schema-version'] || '2.2.0'}
-# Generated: ${new Date().toISOString().split('T')[0]}
-
-${yaml}`;
-
-      return yaml;
+      return `${commentLines.join('\n')}\n\n${yaml}`;
     } catch (error) {
       console.error('YAML generation error:', error);
       return `# Error generating YAML: ${error.message}`;
     }
   }
 
-  /**
-   * Update preview element with generated YAML
-   */
   function updatePreview(previewElement) {
     const yaml = generateYaml();
     previewElement.textContent = yaml;
     return yaml;
   }
 
-  /**
-   * Copy YAML to clipboard
-   */
   async function copyToClipboard() {
     const yaml = generateYaml();
     try {
       await navigator.clipboard.writeText(yaml);
       return true;
     } catch (error) {
-      // Fallback for older browsers
       const textarea = document.createElement('textarea');
       textarea.value = yaml;
       textarea.style.position = 'fixed';
@@ -169,148 +179,254 @@ ${yaml}`;
         document.execCommand('copy');
         document.body.removeChild(textarea);
         return true;
-      } catch (e) {
+      } catch (copyError) {
         document.body.removeChild(textarea);
         return false;
       }
     }
   }
 
-  /**
-   * Download YAML file
-   */
   function download(filename = 'security-insights.yml') {
-    const yaml = generateYaml();
-    const blob = new Blob([yaml], { type: 'text/yaml;charset=utf-8' });
+    const blob = new Blob([generateYaml()], { type: 'text/yaml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     link.style.display = 'none';
-
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
-  /**
-   * Validate the current form data against schema
-   * Returns array of validation errors
-   */
-  function validate() {
-    const errors = [];
+  function isMissing(value) {
+    return value === undefined || value === null || value === '';
+  }
 
+  function validate(data = formData, minimalOnly = minimalMode) {
+    const errors = [];
     if (!schema) {
-      errors.push({ path: '', message: 'Schema not loaded' });
-      return errors;
+      return [{ path: '', message: 'Schema not loaded' }];
     }
 
     const rootType = schema.getType('#SecurityInsights');
     if (!rootType) {
-      errors.push({ path: '', message: 'Invalid schema' });
-      return errors;
+      return [{ path: '', message: 'Invalid schema: #SecurityInsights is missing' }];
     }
 
-    validateObject(formData, rootType, '', errors);
+    validateSchemaPatterns(errors);
+    const exportData = getExportData(data, minimalOnly);
+    validateValue(exportData, rootType, '', errors);
+    validateDocumentConditions(exportData, errors);
     return errors;
   }
 
-  /**
-   * Recursively validate an object against its type definition
-   */
-  function validateObject(data, typeDef, path, errors) {
-    if (!typeDef) return;
+  function validateSchemaPatterns(errors) {
+    const visited = new Set();
 
-    const resolvedType = typeDef.kind === 'reference'
-      ? schema.resolveType(typeDef)
-      : typeDef;
+    function visit(typeDef, path) {
+      if (!typeDef || visited.has(typeDef)) {
+        return;
+      }
+      visited.add(typeDef);
 
-    if (!resolvedType) return;
-
-    if (resolvedType.kind === 'struct') {
-      // Check required fields
-      for (const [fieldName, field] of Object.entries(resolvedType.fields)) {
-        const fieldPath = path ? `${path}.${fieldName}` : fieldName;
-        const value = data && data[fieldName];
-
-        if (!field.optional && (value === undefined || value === null || value === '')) {
-          // Special case: project and repository are conditionally required
-          if (fieldName === 'project' || fieldName === 'repository') {
-            // These are optional if project-si-source is set
-            const projectSiSource = data && data.header && data.header['project-si-source'];
-            if (projectSiSource) continue;
-          }
-          errors.push({ path: fieldPath, message: `Required field "${fieldName}" is missing` });
-        } else if (value !== undefined && value !== null) {
-          validateValue(value, field, fieldPath, errors);
+      if (typeDef.kind === 'primitive' && typeDef.pattern) {
+        try {
+          new RegExp(typeDef.pattern);
+        } catch (error) {
+          errors.push({
+            path,
+            message: `Schema validation error: invalid pattern "${typeDef.pattern}"`
+          });
         }
+      } else if (typeDef.kind === 'struct') {
+        for (const [fieldName, field] of Object.entries(typeDef.fields || {})) {
+          visit(field, `${path}.${fieldName}`);
+        }
+      } else if (typeDef.kind === 'array') {
+        visit(typeDef.itemType, `${path}[]`);
+      } else if (typeDef.kind === 'disjunction') {
+        typeDef.options.forEach((option, index) => {
+          visit(option, `${path}|${index + 1}`);
+        });
+      }
+    }
+
+    for (const [typeName, typeDef] of Object.entries(schema.types || {})) {
+      visit(typeDef, typeName);
+    }
+  }
+
+  function validateDocumentConditions(data, errors) {
+    if (!Utils.isPlainMapping(data)) {
+      return;
+    }
+
+    const source = data.header && data.header['project-si-source'];
+    const hasSource = !isMissing(source);
+    const hasProject = Object.prototype.hasOwnProperty.call(data, 'project');
+    const hasRepository = Object.prototype.hasOwnProperty.call(data, 'repository');
+
+    if (hasSource) {
+      if (hasProject) {
+        errors.push({
+          path: 'project',
+          message: 'Project must be omitted when header.project-si-source is set'
+        });
+      }
+      if (!hasRepository) {
+        errors.push({
+          path: 'repository',
+          message: 'Repository is required when header.project-si-source is set'
+        });
+      }
+    } else if (!hasProject) {
+      errors.push({
+        path: 'project',
+        message: 'Project is required when header.project-si-source is not set'
+      });
+    }
+  }
+
+  function validateObject(data, typeDef, path, errors) {
+    if (!Utils.isPlainMapping(data)) {
+      errors.push({ path, message: 'Expected an object' });
+      return;
+    }
+
+    for (const key of Object.keys(data)) {
+      if (!Object.prototype.hasOwnProperty.call(typeDef.fields, key)) {
+        errors.push({
+          path: path ? `${path}.${key}` : key,
+          message: `Unknown field "${key}"`
+        });
+      }
+    }
+
+    for (const [fieldName, field] of Object.entries(typeDef.fields)) {
+      const fieldPath = path ? `${path}.${fieldName}` : fieldName;
+      const value = data[fieldName];
+      if (!field.optional && isMissing(value)) {
+        errors.push({
+          path: fieldPath,
+          message: `Required field "${fieldName}" is missing`
+        });
+      } else if (!isMissing(value)) {
+        validateValue(value, field, fieldPath, errors);
       }
     }
   }
 
-  /**
-   * Validate a single value against its type definition
-   */
   function validateValue(value, typeDef, path, errors) {
-    if (!typeDef) return;
+    if (!typeDef) {
+      errors.push({
+        path,
+        message: 'Schema validation error: field type is missing'
+      });
+      return;
+    }
 
-    const resolvedType = typeDef.kind === 'reference'
-      ? schema.resolveType(typeDef)
-      : typeDef;
-
-    if (!resolvedType) return;
+    const resolvedType = resolveType(typeDef);
+    if (!resolvedType) {
+      errors.push({
+        path,
+        message: `Schema validation error: unresolved type ${typeDef.ref || ''}`.trim()
+      });
+      return;
+    }
 
     switch (resolvedType.kind) {
       case 'primitive':
         validatePrimitive(value, resolvedType, path, errors);
         break;
-
+      case 'literal':
+        if (value !== resolvedType.value) {
+          errors.push({
+            path,
+            message: `Expected literal value ${JSON.stringify(resolvedType.value)}`
+          });
+        }
+        break;
       case 'enum':
         if (!resolvedType.values.includes(value)) {
           errors.push({
             path,
-            message: `Value "${value}" is not valid. Must be one of: ${resolvedType.values.join(', ')}`
+            message: `Value ${JSON.stringify(value)} must be one of: ${resolvedType.values.join(', ')}`
           });
         }
         break;
-
       case 'array':
-        if (!Array.isArray(value)) {
-          errors.push({ path, message: 'Expected an array' });
-        } else {
-          if (resolvedType.minItems && value.length < resolvedType.minItems) {
-            errors.push({
-              path,
-              message: `Array must have at least ${resolvedType.minItems} item(s)`
-            });
-          }
-          value.forEach((item, index) => {
-            validateValue(item, resolvedType.itemType, `${path}[${index}]`, errors);
-          });
-        }
+        validateArray(value, resolvedType, path, errors);
         break;
-
+      case 'array-literal':
+        validateArrayLiteral(value, resolvedType, path, errors);
+        break;
       case 'struct':
-        if (typeof value !== 'object' || Array.isArray(value)) {
-          errors.push({ path, message: 'Expected an object' });
-        } else {
-          validateObject(value, resolvedType, path, errors);
-        }
+        validateObject(value, resolvedType, path, errors);
         break;
-
       case 'disjunction':
-        // For disjunctions, try to validate against each option
-        // This is a simplified check - just ensure it's not empty for required fields
+        validateDisjunction(value, resolvedType, path, errors);
         break;
+      default:
+        errors.push({
+          path,
+          message: `Schema validation error: unsupported type "${resolvedType.kind}"`
+        });
     }
   }
 
-  /**
-   * Validate a primitive value
-   */
+  function validateArray(value, typeDef, path, errors) {
+    if (!Array.isArray(value)) {
+      errors.push({ path, message: 'Expected an array' });
+      return;
+    }
+    if (Number.isInteger(typeDef.minItems) && value.length < typeDef.minItems) {
+      errors.push({
+        path,
+        message: `Array must have at least ${typeDef.minItems} item(s)`
+      });
+    }
+    if (Number.isInteger(typeDef.maxItems) && value.length > typeDef.maxItems) {
+      errors.push({
+        path,
+        message: `Array must have at most ${typeDef.maxItems} item(s)`
+      });
+    }
+    value.forEach((item, index) => {
+      validateValue(item, typeDef.itemType, `${path}[${index}]`, errors);
+    });
+  }
+
+  function validateArrayLiteral(value, typeDef, path, errors) {
+    if (!Array.isArray(value)) {
+      errors.push({ path, message: 'Expected an array' });
+      return;
+    }
+    if (
+      value.length !== typeDef.values.length
+      || value.some((item, index) => item !== typeDef.values[index])
+    ) {
+      errors.push({
+        path,
+        message: `Expected ${JSON.stringify(typeDef.values)}`
+      });
+    }
+  }
+
+  function validateDisjunction(value, typeDef, path, errors) {
+    for (const option of typeDef.options) {
+      const optionErrors = [];
+      validateValue(value, option, path, optionErrors);
+      if (optionErrors.length === 0) {
+        return;
+      }
+    }
+    errors.push({
+      path,
+      message: 'Value does not match any allowed schema option'
+    });
+  }
+
   function validatePrimitive(value, typeDef, path, errors) {
     if (typeDef.type === 'bool') {
       if (typeof value !== 'boolean') {
@@ -320,50 +436,77 @@ ${yaml}`;
     }
 
     if (typeDef.type === 'date') {
-      // Validate date format YYYY-MM-DD
-      if (typeof value === 'string' && value) {
-        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-        if (!dateRegex.test(value)) {
-          errors.push({ path, message: 'Date must be in YYYY-MM-DD format' });
-        }
+      if (typeof value !== 'string') {
+        errors.push({ path, message: 'Expected a date string in YYYY-MM-DD format' });
+        return;
+      }
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+      if (!match) {
+        errors.push({ path, message: 'Date must be in YYYY-MM-DD format' });
+        return;
+      }
+      const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+      if (
+        date.getUTCFullYear() !== Number(match[1])
+        || date.getUTCMonth() !== Number(match[2]) - 1
+        || date.getUTCDate() !== Number(match[3])
+      ) {
+        errors.push({ path, message: 'Date must be a valid calendar date' });
       }
       return;
     }
 
-    // String with pattern
-    if (typeDef.pattern && typeof value === 'string' && value) {
-      try {
-        const regex = new RegExp(typeDef.pattern);
+    if (typeDef.type === 'string') {
+      if (typeof value !== 'string') {
+        errors.push({ path, message: 'Expected a string value' });
+        return;
+      }
+      if (typeDef.pattern) {
+        let regex;
+        try {
+          regex = new RegExp(typeDef.pattern);
+        } catch (error) {
+          errors.push({
+            path,
+            message: `Schema validation error: invalid pattern "${typeDef.pattern}"`
+          });
+          return;
+        }
         if (!regex.test(value)) {
           if (typeDef.pattern.includes('https?')) {
             errors.push({ path, message: 'Must be a valid URL (http:// or https://)' });
           } else if (typeDef.pattern.includes('@')) {
             errors.push({ path, message: 'Must be a valid email address' });
           } else {
-            errors.push({ path, message: `Value does not match required pattern` });
+            errors.push({ path, message: 'Value does not match the required pattern' });
           }
         }
-      } catch (e) {
-        // Invalid regex pattern in schema - skip validation
       }
+      return;
     }
+
+    errors.push({
+      path,
+      message: `Schema validation error: unsupported primitive "${typeDef.type}"`
+    });
   }
 
-  // Public API
   return {
     init,
     setFormData,
     setMinimalMode,
     isMinimalMode,
+    cleanData,
+    getExportData,
     generateYaml,
     updatePreview,
     copyToClipboard,
     download,
-    validate
+    validate,
+    validateValue
   };
 })();
 
-// Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = YamlExport;
 }

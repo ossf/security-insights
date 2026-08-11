@@ -657,7 +657,7 @@ const CueParser = (function() {
     parseArray() {
       this.expect(TokenType.LBRACKET);
 
-      // Empty array with ellipsis: [...]
+      // Variadic array: [...Type]
       if (this.check(TokenType.ELLIPSIS)) {
         this.advance();
         const itemType = this.parseArrayItemType();
@@ -669,7 +669,7 @@ const CueParser = (function() {
         };
       }
 
-      // Array with literal values like ["default"]
+      // Fixed array literal such as ["default"].
       if (this.check(TokenType.STRING)) {
         const values = [];
         values.push(this.advance().value);
@@ -682,20 +682,30 @@ const CueParser = (function() {
         this.expect(TokenType.RBRACKET);
         return {
           kind: 'array-literal',
-          values: values
+          values: values,
+          minItems: values.length,
+          maxItems: values.length
         };
       }
 
-      // Non-empty array: [#Type, ...]
-      if (this.check(TokenType.TYPE_DEF)) {
-        const itemType = this.parseTypeValue();
-        this.match(TokenType.COMMA);
-        const hasEllipsis = !!this.match(TokenType.ELLIPSIS);
+      // Fixed or non-empty variadic array: [Type] or [Type, ...].
+      if (
+        this.check(TokenType.TYPE_DEF)
+        || this.check(TokenType.KEYWORD_STRING)
+        || this.check(TokenType.KEYWORD_BOOL)
+        || this.check(TokenType.LBRACE)
+      ) {
+        const itemType = this.parseArrayItemType();
+        let hasEllipsis = false;
+        if (this.match(TokenType.COMMA)) {
+          hasEllipsis = !!this.match(TokenType.ELLIPSIS);
+        }
         this.expect(TokenType.RBRACKET);
         return {
           kind: 'array',
           itemType: itemType,
-          minItems: hasEllipsis ? 1 : 1 // [#Type, ...] means 1 or more
+          minItems: 1,
+          ...(hasEllipsis ? {} : { maxItems: 1 })
         };
       }
 
@@ -720,6 +730,9 @@ const CueParser = (function() {
         this.advance();
         return { kind: 'primitive', type: 'bool' };
       }
+      if (this.check(TokenType.LBRACE)) {
+        return this.parseStruct();
+      }
       return { kind: 'unknown' };
     }
   }
@@ -727,7 +740,7 @@ const CueParser = (function() {
   /**
    * Main parsing function
    */
-  function parse(source) {
+  function parse(source, metadata = {}) {
     const tokenizer = new Tokenizer(source);
     const { tokens, comments } = tokenizer.tokenize();
 
@@ -735,15 +748,19 @@ const CueParser = (function() {
     const types = parser.parse();
 
     // Post-process to resolve references and build complete schema
-    return processSchema(types);
+    return createSchema(types, metadata);
   }
 
   /**
    * Post-process the parsed types to create a usable schema
    */
-  function processSchema(types) {
+  function createSchema(types, metadata = {}) {
+    const version = typeof metadata === 'string'
+      ? metadata
+      : metadata && metadata.version;
+
     const schema = {
-      version: '2.2.0',
+      version: version ? String(version).replace(/^v/, '') : null,
       root: '#SecurityInsights',
       types: types,
 
@@ -803,19 +820,20 @@ const CueParser = (function() {
   /**
    * Fetch and parse schema from URL
    */
-  async function fetchAndParse(url) {
+  async function fetchAndParse(url, metadata = {}) {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch schema: ${response.status} ${response.statusText}`);
     }
     const source = await response.text();
-    return parse(source);
+    return parse(source, metadata);
   }
 
   // Public API
   return {
     parse,
     fetchAndParse,
+    createSchema,
     TokenType
   };
 })();
