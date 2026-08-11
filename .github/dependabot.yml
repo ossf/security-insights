@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: bundler
+    directory: /docs
+    schedule:
+      interval: weekly
+    groups:
+      bundler-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: gomod
+    directories:
+      - /cmd/cue2openapi
+      - /cmd/openapi2md
+    schedule:
+      interval: weekly
+    groups:
+      gomod-minor-patch:
+        update-types:
+          - minor
+          - patch
