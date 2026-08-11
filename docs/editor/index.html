@@ -1,0 +1,164 @@
+---
+layout: default
+title: Security Insights Editor
+nav-title: Editor
+---
+
+<div class="editor-container">
+  <!-- Configuration Panel -->
+  <div class="config-panel" id="config-panel">
+    <details>
+      <summary>Configuration</summary>
+      <div class="config-content">
+        <label for="schema-url">Schema URL (raw GitHub URL to schema.cue):</label>
+        <input type="text" id="schema-url"
+          value="https://raw.githubusercontent.com/ossf/security-insights/main/spec/schema.cue"
+          placeholder="https://raw.githubusercontent.com/owner/repo/branch/spec/schema.cue">
+        <button type="button" id="reload-schema-btn" class="btn btn-secondary">Reload Schema</button>
+        <p class="config-note">Change this if you're working with a fork or different branch.</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- Mode Selector -->
+  <div class="mode-selector">
+    <button type="button" id="mode-form" class="mode-btn active">Form Editor</button>
+    <button type="button" id="mode-wizard" class="mode-btn">Wizard</button>
+  </div>
+
+  <!-- Input Section -->
+  <div class="input-section" id="input-section">
+    <h2>Load Existing File</h2>
+    <div class="input-methods">
+      <div class="drop-zone" id="drop-zone">
+        <p>Drag &amp; drop a security-insights.yml file here</p>
+        <p>or</p>
+        <input type="file" id="file-input" accept=".yml,.yaml" hidden>
+        <button type="button" id="browse-btn" class="btn">Browse Files</button>
+      </div>
+      <div class="url-input">
+        <label for="file-url">Or load from URL:</label>
+        <div class="url-input-row">
+          <input type="text" id="file-url" placeholder="https://example.com/security-insights.yml">
+          <button type="button" id="load-url-btn" class="btn">Load</button>
+        </div>
+      </div>
+      <div class="paste-input">
+        <label for="yaml-paste">Or paste YAML content:</label>
+        <textarea id="yaml-paste" rows="6" placeholder="Paste your security-insights.yml content here..."></textarea>
+        <button type="button" id="load-paste-btn" class="btn">Load from Paste</button>
+      </div>
+    </div>
+    <div class="start-fresh">
+      <h3>Or Start Fresh</h3>
+      <div class="single-maintainer-option">
+        <label class="checkbox-label">
+          <input type="checkbox" id="single-maintainer-checkbox">
+          <span>This is a single-maintainer project</span>
+        </label>
+        <p class="help-text">If checked, your contact info will be used for project administrator, repository core
+          team, and vulnerability reporting contact fields.</p>
+        <div id="single-maintainer-fields" class="hidden">
+          <div class="maintainer-fields-row">
+            <div class="maintainer-field">
+              <label for="maintainer-name">Name:</label>
+              <input type="text" id="maintainer-name" placeholder="Your name">
+            </div>
+            <div class="maintainer-field">
+              <label for="maintainer-email">Email:</label>
+              <input type="email" id="maintainer-email" placeholder="your@email.com">
+            </div>
+            <div class="maintainer-field">
+              <label for="maintainer-affiliation">Affiliation (optional):</label>
+              <input type="text" id="maintainer-affiliation" placeholder="Organization name">
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" id="start-fresh-btn" class="btn btn-primary">Start Fresh</button>
+    </div>
+  </div>
+
+  <!-- Parent File Section (for multi-repository) -->
+  <div class="parent-section hidden" id="parent-section">
+    <h3>Parent Security Insights File</h3>
+    <p>This child file references: <code id="parent-url"></code></p>
+    <p>
+      Parent files are never fetched automatically. Choose whether to fetch this exact
+      reference, upload the parent yourself, or continue without inherited project context.
+    </p>
+    <input type="file" id="parent-file-input" accept=".yml,.yaml" hidden>
+    <button type="button" id="parent-fetch-btn" class="btn btn-primary">Fetch Parent File</button>
+    <button type="button" id="parent-browse-btn" class="btn">Upload Parent File</button>
+    <button type="button" id="skip-parent-btn" class="btn btn-secondary">Skip (edit without parent)</button>
+  </div>
+
+  <!-- Validation Status -->
+  <div class="validation-status" id="validation-status">
+    <span class="status-icon" id="status-icon">●</span>
+    <span class="status-text" id="status-text">Ready</span>
+    <span class="last-validated" id="last-validated"></span>
+  </div>
+
+  <!-- Main Editor Area -->
+  <div class="editor-main hidden" id="editor-main">
+    <!-- Form Editor -->
+    <div class="form-editor" id="form-editor">
+      <div class="form-sections" id="form-sections">
+        <!-- Dynamically generated form sections will appear here -->
+      </div>
+    </div>
+
+    <!-- Wizard Mode -->
+    <div class="wizard-editor hidden" id="wizard-editor">
+      <div class="wizard-progress" id="wizard-progress">
+        <!-- Progress steps will be generated here -->
+      </div>
+      <div class="wizard-content" id="wizard-content">
+        <!-- Wizard step content will appear here -->
+      </div>
+      <div class="wizard-nav">
+        <button type="button" id="wizard-prev" class="btn" disabled>Previous</button>
+        <button type="button" id="wizard-next" class="btn btn-primary">Next</button>
+      </div>
+    </div>
+
+    <!-- YAML Preview Panel -->
+    <div class="preview-panel" id="preview-panel">
+      <div class="preview-header">
+        <h3>YAML Preview</h3>
+        <div class="preview-controls">
+          <label>
+            <input type="checkbox" id="minimal-output"> Minimal (required fields only)
+          </label>
+          <button type="button" id="copy-yaml-btn" class="btn btn-small">Copy</button>
+          <button type="button" id="download-yaml-btn" class="btn btn-small btn-primary">Download</button>
+        </div>
+      </div>
+      <pre class="yaml-output" id="yaml-output"></pre>
+    </div>
+  </div>
+
+  <!-- Error Panel -->
+  <div class="error-panel hidden" id="error-panel">
+    <h3>Validation Errors</h3>
+    <ul class="error-list" id="error-list"></ul>
+  </div>
+</div>
+
+<!-- External Dependencies -->
+<script
+  src="https://cdn.jsdelivr.net/npm/js-yaml@4.3.1/dist/js-yaml.min.js"
+  integrity="sha384-S9ICdlb+JXmKnf3zbM1G+PBNWbhB7ARTUpJyvroFrHHHR8JsKt4oO+kPyfzbT+TM"
+  crossorigin="anonymous"></script>
+
+<!-- Application Scripts -->
+<script src="{{ '/editor/js/editor-utils.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/cue-parser.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/schema-fallback.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/form-builder.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/wizard.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/yaml-export.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/app.js' | relative_url }}"></script>
+
+<link rel="stylesheet" href="{{ '/editor/css/editor.css' | relative_url }}">

@@ -3,4 +3,5 @@ openapi.yaml
 cmd/*/cue2openapi
 cmd/*/openapi2md
 docs/_site/
+node_modules/
 .DS_Store
