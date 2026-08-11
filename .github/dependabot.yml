@@ -4,6 +4,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       github-actions-minor-patch:
         update-types:
@@ -14,6 +16,8 @@ updates:
     directory: /docs
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       bundler-minor-patch:
         update-types:
@@ -26,6 +30,8 @@ updates:
       - /cmd/openapi2md
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
       gomod-minor-patch:
         update-types:
