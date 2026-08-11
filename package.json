@@ -1,0 +1,10 @@
+{
+  "name": "security-insights-editor-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/editor/*.test.js"
+  },
+  "devDependencies": {
+    "js-yaml": "4.3.1"
+  }
+}
