@@ -176,9 +176,9 @@ const YamlExport = (function () {
       document.body.appendChild(textarea);
       textarea.select();
       try {
-        document.execCommand('copy');
+        const copied = document.execCommand('copy');
         document.body.removeChild(textarea);
-        return true;
+        return copied;
       } catch (copyError) {
         document.body.removeChild(textarea);
         return false;
