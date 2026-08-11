@@ -284,11 +284,21 @@ const App = (function () {
   }
 
   function synchronizeEditedData(data) {
+    const sourceChanged = state.readOnlyPaths.length > 0
+      && getProjectSource(data) !== getProjectSource(state.exportData);
+    if (sourceChanged) {
+      data = EditorUtils.createExportData(data, state.readOnlyPaths);
+      state.readOnlyPaths = [];
+      FormBuilder.setReadOnlyPaths(state.readOnlyPaths);
+    }
     state.displayData = data;
     state.exportData = EditorUtils.createExportData(data, state.readOnlyPaths);
     FormBuilder.setFormData(state.displayData);
     Wizard.setFormData(state.displayData);
     YamlExport.setFormData(state.exportData);
+    if (sourceChanged) {
+      rebuildActiveMode();
+    }
   }
 
   function handleFormChange(data) {
