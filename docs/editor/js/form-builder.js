@@ -107,6 +107,9 @@ const FormBuilder = (function () {
 
     const header = document.createElement('div');
     header.className = 'form-section-header';
+    header.setAttribute('role', 'button');
+    header.tabIndex = 0;
+    header.setAttribute('aria-expanded', 'true');
 
     const heading = document.createElement('h3');
     heading.appendChild(createTextElement('span', 'toggle-icon', '▼'));
@@ -115,7 +118,17 @@ const FormBuilder = (function () {
       heading.appendChild(createTextElement('span', 'form-section-required', '*'));
     }
     header.appendChild(heading);
-    header.addEventListener('click', () => section.classList.toggle('collapsed'));
+    const toggleSection = () => {
+      const collapsed = section.classList.toggle('collapsed');
+      header.setAttribute('aria-expanded', String(!collapsed));
+    };
+    header.addEventListener('click', toggleSection);
+    header.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleSection();
+      }
+    });
 
     const content = document.createElement('div');
     content.className = 'form-section-content';
