@@ -4,10 +4,10 @@ author:
   email: openssf-sig-security-insights+subscribe@lists.openssf.org
 logo: /assets/logo.svg
 url: "https://security-insights.openssf.org"
-description: > 
-  Security Insights provides a mechanism for projects to report information about 
-  their security in a machine-processable way. The data tracked within this 
-  specification fills the gaps between simplified solutions such as SECURITY.md and 
+description: >
+  Security Insights provides a mechanism for projects to report information about
+  their security in a machine-processable way. The data tracked within this
+  specification fills the gaps between simplified solutions such as SECURITY.md and
   comprehensive automated solutions such as SBOMs.
 
 titles_from_headings:
@@ -58,6 +58,8 @@ navigation:
     path: get-started.md
   - name: Schema
     path: schema.md
+  - name: Editor
+    path: editor/index.html
   - name: FAQ
     path: FAQ.md
   - name: Governance
@@ -87,4 +89,3 @@ exclude:
   - roadmap/
   - threat-model/
   - user-story.md
-
