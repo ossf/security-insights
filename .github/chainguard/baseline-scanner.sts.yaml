@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/octo-sts/app/refs/heads/main/pkg/octosts/octosts.TrustPolicy.json
+#
+# Octo STS trust policy for the OSPS Baseline Scanner workflow.
+# Allows GitHub Actions runs on the main branch of this repository to
+# federate for a short-lived GitHub App token, replacing the long-lived
+# GH_AUTH_TOKEN PAT. See .github/workflows/baseline.yaml.
+
+issuer: https://token.actions.githubusercontent.com
+subject: repo:ossf/security-insights:ref:refs/heads/main
+
+permissions:
+  metadata: read # Repository and organization metadata, branch rules
+  contents: read # Repo contents, languages, releases, security policy
+  administration: read # Branch protection rule via GraphQL
+  checks: read # Check suites/runs on the latest commit
+  statuses: read # Classic commit status API
