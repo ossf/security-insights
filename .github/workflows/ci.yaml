@@ -28,6 +28,18 @@ jobs:
       - name: Setup Cue
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install editor test dependencies
+        run: npm ci
+
+      - name: Test editor
+        run: make testeditor
+
       - name: Validate schema.cue
         run: make lintcue
 
