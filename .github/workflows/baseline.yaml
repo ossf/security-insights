@@ -32,7 +32,7 @@ jobs:
         with:
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
-          token: ${{ secrets.GH_AUTH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           catalog: "osps-baseline"
           upload-sarif: "true"
 
