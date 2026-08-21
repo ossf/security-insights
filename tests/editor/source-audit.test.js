@@ -55,6 +55,56 @@ test('editor source avoids user-data innerHTML and wires secure script loading',
   );
 });
 
+test('editor exposes keyboard navigation and validation semantics', () => {
+  const app = fs.readFileSync(path.join(root, 'docs/editor/js/app.js'), 'utf8');
+  const form = fs.readFileSync(
+    path.join(root, 'docs/editor/js/form-builder.js'),
+    'utf8'
+  );
+  const wizard = fs.readFileSync(
+    path.join(root, 'docs/editor/js/wizard.js'),
+    'utf8'
+  );
+  const page = fs.readFileSync(path.join(root, 'docs/editor/index.html'), 'utf8');
+  const styles = fs.readFileSync(
+    path.join(root, 'docs/editor/css/editor.css'),
+    'utf8'
+  );
+
+  assert.match(page, /class="mode-selector" role="tablist"/);
+  assert.match(page, /<details aria-label="Editor configuration">/);
+  assert.match(page, /id="mode-form"[^>]*role="tab"[^>]*aria-selected="true"/);
+  assert.match(page, /id="status-text" role="status" aria-live="polite"/);
+  assert.match(page, /id="wizard-progress" aria-label="Wizard progress"/);
+  assert.match(
+    page,
+    /id="yaml-output" tabindex="0"[\s\S]*aria-label="Generated YAML preview"/
+  );
+  assert.match(
+    page,
+    /id="error-panel" role="region"[\s\S]*aria-labelledby="validation-errors-heading"/
+  );
+  assert.match(app, /event\.key === 'ArrowRight'/);
+  assert.match(app, /setAttribute\('aria-selected'/);
+  assert.match(app, /ValidationAccessibility\.markTarget\(field, message\.id\)/);
+  assert.match(app, /ValidationAccessibility\.getOwnedMessage\(element\)/);
+  assert.match(app, /ValidationAccessibility\.getScrollBehavior\(prefersReducedMotion\)/);
+  assert.match(app, /toast\.setAttribute\('role', type === 'error' \? 'alert' : 'status'\)/);
+  assert.match(app, /target\.element\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(app, /Wizard\.getStepIndexForPath\(path\)/);
+  assert.match(form, /toggle\.setAttribute\('aria-controls', contentId\)/);
+  assert.match(form, /toggle\.type = 'button'/);
+  assert.doesNotMatch(form, /setAttribute\('role', 'button'\)/);
+  assert.match(form, /container\.setAttribute\('aria-labelledby', heading\.id\)/);
+  assert.match(wizard, /className = 'wizard-progress-list'/);
+  assert.match(wizard, /setAttribute\('aria-current', 'step'\)/);
+  assert.match(styles, /:focus-visible/);
+  assert.match(
+    styles,
+    /\.wizard-progress-item:last-child \.wizard-step::after/
+  );
+});
+
 const cueAvailable = spawnSync('cue', ['version'], {
   cwd: root,
   encoding: 'utf8'

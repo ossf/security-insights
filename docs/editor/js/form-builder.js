@@ -58,7 +58,33 @@ const FormBuilder = (function () {
 
   function appendRequiredIndicator(label) {
     const indicator = createTextElement('span', 'required-indicator', '*');
+    indicator.setAttribute('aria-hidden', 'true');
     label.appendChild(indicator);
+  }
+
+  function toHtmlPattern(pattern) {
+    // HTML pattern expressions use the UnicodeSets (`v`) flag. A hyphen at the
+    // end of a character class must therefore be escaped even though the same
+    // schema expression is valid for JavaScript's traditional RegExp parser.
+    const candidate = String(pattern).replace(/(^|[^\\])-\]/g, '$1\\-]');
+    try {
+      // `v` is the mode required by the current HTML pattern specification.
+      // Browsers without UnicodeSets support still use the older `u` behavior.
+      new RegExp(candidate, 'v');
+      return candidate;
+    } catch (unicodeSetsError) {
+      try {
+        new RegExp('', 'v');
+        return null;
+      } catch (unsupportedFlagError) {
+        try {
+          new RegExp(candidate, 'u');
+          return candidate;
+        } catch (legacyPatternError) {
+          return null;
+        }
+      }
+    }
   }
 
   function appendDescription(container, description, className = 'field-description') {
@@ -107,31 +133,37 @@ const FormBuilder = (function () {
 
     const header = document.createElement('div');
     header.className = 'form-section-header';
-    header.setAttribute('role', 'button');
-    header.tabIndex = 0;
-    header.setAttribute('aria-expanded', 'true');
+    const contentId = generateId(`${path}-content`);
 
     const heading = document.createElement('h3');
-    heading.appendChild(createTextElement('span', 'toggle-icon', '▼'));
-    heading.appendChild(document.createTextNode(` ${toLabel(fieldName)} `));
+    heading.id = generateId(`${path}-heading`);
+    section.setAttribute('role', 'group');
+    section.setAttribute('aria-labelledby', heading.id);
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'form-section-toggle';
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-controls', contentId);
+    toggle.appendChild(createTextElement('span', 'toggle-icon', '▼'));
+    toggle.querySelector('.toggle-icon').setAttribute('aria-hidden', 'true');
+    toggle.appendChild(document.createTextNode(` ${toLabel(fieldName)} `));
     if (!field.optional) {
-      heading.appendChild(createTextElement('span', 'form-section-required', '*'));
+      const indicator = createTextElement('span', 'form-section-required', '*');
+      indicator.setAttribute('aria-hidden', 'true');
+      toggle.appendChild(indicator);
     }
+    heading.appendChild(toggle);
     header.appendChild(heading);
     const toggleSection = () => {
       const collapsed = section.classList.toggle('collapsed');
-      header.setAttribute('aria-expanded', String(!collapsed));
+      toggle.setAttribute('aria-expanded', String(!collapsed));
     };
-    header.addEventListener('click', toggleSection);
-    header.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggleSection();
-      }
-    });
+    toggle.addEventListener('click', toggleSection);
 
     const content = document.createElement('div');
     content.className = 'form-section-content';
+    content.id = contentId;
     appendDescription(content, field.description);
 
     if (isReadOnly(path)) {
@@ -259,7 +291,10 @@ const FormBuilder = (function () {
     input.required = required;
     input.disabled = fieldReadOnly;
     if (pattern) {
-      input.pattern = pattern;
+      const htmlPattern = toHtmlPattern(pattern);
+      if (htmlPattern) {
+        input.pattern = htmlPattern;
+      }
     }
 
     input.addEventListener('input', () => {
@@ -331,6 +366,9 @@ const FormBuilder = (function () {
     const header = document.createElement('div');
     header.className = 'array-field-header';
     const heading = document.createElement('h4');
+    heading.id = generateId(`${path}-heading`);
+    container.setAttribute('role', 'group');
+    container.setAttribute('aria-labelledby', heading.id);
     heading.appendChild(document.createTextNode(`${toLabel(fieldName)} `));
     if (required) {
       appendRequiredIndicator(heading);
@@ -418,6 +456,11 @@ const FormBuilder = (function () {
     const container = document.createElement('div');
     container.className = 'array-item';
     container.dataset.path = path;
+    container.setAttribute('role', 'group');
+    container.setAttribute(
+      'aria-label',
+      `${toLabel(arrayPath.split('.').pop())} item ${index + 1}`
+    );
 
     const content = document.createElement('div');
     content.className = 'array-item-content';
@@ -444,6 +487,12 @@ const FormBuilder = (function () {
     removeButton.title = totalItems <= minItems
       ? `Minimum ${minItems} items required`
       : 'Remove';
+    removeButton.setAttribute(
+      'aria-label',
+      totalItems <= minItems
+        ? `Cannot remove item ${index + 1}; at least ${minItems} ${minItems === 1 ? 'item is' : 'items are'} required`
+        : `Remove ${toLabel(arrayPath.split('.').pop())} item ${index + 1}`
+    );
     removeButton.addEventListener('click', () => {
       const items = Utils.getNestedValue(formData, arrayPath);
       if (!Array.isArray(items)) {
@@ -466,7 +515,11 @@ const FormBuilder = (function () {
     container.className = 'form-field nested-object';
     container.dataset.path = path;
 
-    container.appendChild(buildFieldLabel(fieldName, null, !field.optional));
+    const label = buildFieldLabel(fieldName, null, !field.optional);
+    label.id = generateId(`${path}-label`);
+    container.setAttribute('role', 'group');
+    container.setAttribute('aria-labelledby', label.id);
+    container.appendChild(label);
     appendDescription(container, field.description);
 
     const fieldsContainer = document.createElement('div');
@@ -582,6 +635,7 @@ const FormBuilder = (function () {
     buildField,
     clearForm,
     getDefaultForType,
+    toHtmlPattern,
     toLabel
   };
 })();

@@ -118,39 +118,74 @@ const Wizard = (function () {
     return currentStep > 0;
   }
 
+  function getStepIndexForPath(path) {
+    if (typeof path !== 'string' || path.length === 0) {
+      return -1;
+    }
+    return steps.findIndex(step => step.fields.some(fieldPath => {
+      return path === fieldPath
+        || path.startsWith(`${fieldPath}.`)
+        || path.startsWith(`${fieldPath}[`)
+        || fieldPath.startsWith(`${path}.`)
+        || fieldPath.startsWith(`${path}[`);
+    }));
+  }
+
   function buildProgress(container) {
     container.replaceChildren();
 
+    const list = document.createElement('ol');
+    list.className = 'wizard-progress-list';
+
     steps.forEach((step, index) => {
-      const stepElement = document.createElement('div');
+      const item = document.createElement('li');
+      item.className = 'wizard-progress-item';
+      const stepElement = document.createElement(index < currentStep ? 'button' : 'span');
+      if (index < currentStep) {
+        stepElement.type = 'button';
+      }
       stepElement.className = 'wizard-step';
+      const status = index < currentStep ? 'completed' : 'upcoming';
       if (index === currentStep) {
         stepElement.classList.add('active');
+        item.setAttribute('aria-current', 'step');
       } else if (index < currentStep) {
         stepElement.classList.add('completed');
       }
 
       const number = document.createElement('div');
       number.className = 'wizard-step-number';
+      number.setAttribute('aria-hidden', 'true');
       number.textContent = index < currentStep ? '✓' : String(index + 1);
 
       const label = document.createElement('div');
       label.className = 'wizard-step-label';
+      label.setAttribute('aria-hidden', 'true');
       label.textContent = step.title;
 
+      const accessibleText = document.createElement('span');
+      accessibleText.className = 'visually-hidden';
+      accessibleText.textContent = index === currentStep
+        ? `Step ${index + 1}: ${step.title}`
+        : `Step ${index + 1}: ${step.title}, ${status}`;
+
+      stepElement.appendChild(accessibleText);
       stepElement.appendChild(number);
       stepElement.appendChild(label);
-      stepElement.addEventListener('click', () => {
-        if (index <= currentStep) {
+      if (index < currentStep) {
+        stepElement.addEventListener('click', () => {
           goToStep(index);
           if (onChangeCallback) {
             onChangeCallback(formData, 'navigate');
           }
-        }
-      });
+        });
+      }
 
-      container.appendChild(stepElement);
+      item.appendChild(stepElement);
+      list.appendChild(item);
     });
+
+    container.appendChild(list);
   }
 
   function buildContent(container) {
@@ -165,6 +200,8 @@ const Wizard = (function () {
     header.className = 'wizard-step-header';
 
     const heading = document.createElement('h3');
+    heading.className = 'wizard-step-heading';
+    heading.tabIndex = -1;
     heading.textContent = step.title;
     const description = document.createElement('p');
     description.className = 'help-text';
@@ -227,6 +264,9 @@ const Wizard = (function () {
       const fieldHeader = document.createElement('div');
       fieldHeader.className = 'wizard-field-header';
       const heading = document.createElement('h4');
+      heading.id = `wizard-group-${path.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+      container.setAttribute('role', 'group');
+      container.setAttribute('aria-labelledby', heading.id);
       heading.textContent = FormBuilder.toLabel(fieldName);
       fieldHeader.appendChild(heading);
       if (field.description) {
@@ -299,6 +339,7 @@ const Wizard = (function () {
     prevStep,
     canGoNext,
     canGoPrev,
+    getStepIndexForPath,
     buildProgress,
     buildContent,
     steps
