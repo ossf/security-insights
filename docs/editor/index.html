@@ -7,7 +7,7 @@ nav-title: Editor
 <div class="editor-container">
   <!-- Configuration Panel -->
   <div class="config-panel" id="config-panel">
-    <details>
+    <details aria-label="Editor configuration">
       <summary>Configuration</summary>
       <div class="config-content">
         <label for="schema-url">Schema URL (raw GitHub URL to schema.cue):</label>
@@ -21,9 +21,11 @@ nav-title: Editor
   </div>
 
   <!-- Mode Selector -->
-  <div class="mode-selector">
-    <button type="button" id="mode-form" class="mode-btn active">Form Editor</button>
-    <button type="button" id="mode-wizard" class="mode-btn">Wizard</button>
+  <div class="mode-selector" role="tablist" aria-label="Editor mode">
+    <button type="button" id="mode-form" class="mode-btn active" role="tab"
+      aria-selected="true" aria-controls="form-editor">Form Editor</button>
+    <button type="button" id="mode-wizard" class="mode-btn" role="tab"
+      aria-selected="false" aria-controls="wizard-editor" tabindex="-1">Wizard</button>
   </div>
 
   <!-- Input Section -->
@@ -53,7 +55,8 @@ nav-title: Editor
       <h3>Or Start Fresh</h3>
       <div class="single-maintainer-option">
         <label class="checkbox-label">
-          <input type="checkbox" id="single-maintainer-checkbox">
+          <input type="checkbox" id="single-maintainer-checkbox"
+            aria-controls="single-maintainer-fields" aria-expanded="false">
           <span>This is a single-maintainer project</span>
         </label>
         <p class="help-text">If checked, your contact info will be used for project administrator, repository core
@@ -95,25 +98,26 @@ nav-title: Editor
 
   <!-- Validation Status -->
   <div class="validation-status" id="validation-status">
-    <span class="status-icon" id="status-icon">●</span>
-    <span class="status-text" id="status-text">Ready</span>
+    <span class="status-icon" id="status-icon" aria-hidden="true">●</span>
+    <span class="status-text" id="status-text" role="status" aria-live="polite">Ready</span>
     <span class="last-validated" id="last-validated"></span>
   </div>
 
   <!-- Main Editor Area -->
   <div class="editor-main hidden" id="editor-main">
     <!-- Form Editor -->
-    <div class="form-editor" id="form-editor">
+    <div class="form-editor" id="form-editor" role="tabpanel" aria-labelledby="mode-form">
       <div class="form-sections" id="form-sections">
         <!-- Dynamically generated form sections will appear here -->
       </div>
     </div>
 
     <!-- Wizard Mode -->
-    <div class="wizard-editor hidden" id="wizard-editor">
-      <div class="wizard-progress" id="wizard-progress">
+    <div class="wizard-editor hidden" id="wizard-editor" role="tabpanel"
+      aria-labelledby="mode-wizard">
+      <nav class="wizard-progress" id="wizard-progress" aria-label="Wizard progress">
         <!-- Progress steps will be generated here -->
-      </div>
+      </nav>
       <div class="wizard-content" id="wizard-content">
         <!-- Wizard step content will appear here -->
       </div>
@@ -135,13 +139,15 @@ nav-title: Editor
           <button type="button" id="download-yaml-btn" class="btn btn-small btn-primary">Download</button>
         </div>
       </div>
-      <pre class="yaml-output" id="yaml-output"></pre>
+      <pre class="yaml-output" id="yaml-output" tabindex="0"
+        aria-label="Generated YAML preview"></pre>
     </div>
   </div>
 
   <!-- Error Panel -->
-  <div class="error-panel hidden" id="error-panel">
-    <h3>Validation Errors</h3>
+  <div class="error-panel hidden" id="error-panel" role="region"
+    aria-labelledby="validation-errors-heading">
+    <h3 id="validation-errors-heading">Validation Errors</h3>
     <ul class="error-list" id="error-list"></ul>
   </div>
 </div>
@@ -154,6 +160,7 @@ nav-title: Editor
 
 <!-- Application Scripts -->
 <script src="{{ '/editor/js/editor-utils.js' | relative_url }}"></script>
+<script src="{{ '/editor/js/validation-accessibility.js' | relative_url }}"></script>
 <script src="{{ '/editor/js/cue-parser.js' | relative_url }}"></script>
 <script src="{{ '/editor/js/schema-fallback.js' | relative_url }}"></script>
 <script src="{{ '/editor/js/form-builder.js' | relative_url }}"></script>
