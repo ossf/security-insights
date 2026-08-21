@@ -6,14 +6,15 @@
   --color-primary-visited: #604693;
   --color-primary-hover: #170D34;
   --color-accent: #04ee5f;
-  --color-error: #dc3545;
+  --color-error: #b42318;
   --color-warning: #ffc107;
-  --color-success: #28a745;
+  --color-success: #176b35;
   --color-bg: #fff;
   --color-bg-alt: #f8f9fa;
   --color-border: #dee2e6;
   --color-text: #212529;
-  --color-text-muted: #6c757d;
+  --color-text-muted: #565e64;
+  --color-focus: #005fcc;
   --shadow-dropdown: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   --border-radius: 4px;
   --spacing-xs: 4px;
@@ -417,21 +418,32 @@
 }
 
 .form-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-bg-alt);
-  cursor: pointer;
-  user-select: none;
 }
 
 .form-section-header h3 {
   margin: 0;
   font-size: 1em;
+}
+
+.form-section-toggle {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-section-toggle:focus-visible {
+  outline-offset: -3px;
 }
 
 .form-section-header .toggle-icon {
@@ -503,21 +515,36 @@
 .form-field input:focus,
 .form-field textarea:focus,
 .form-field select:focus {
-  outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px rgba(69, 32, 140, 0.1);
 }
 
-.form-field.has-error input,
-.form-field.has-error textarea,
-.form-field.has-error select {
+.form-field input:focus-visible,
+.form-field textarea:focus-visible,
+.form-field select:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--color-bg);
+}
+
+.form-field [aria-invalid="true"] {
   border-color: var(--color-error);
+}
+
+.validation-group-error {
+  outline: 2px solid var(--color-error);
+  outline-offset: 2px;
 }
 
 .form-field .field-error {
   color: var(--color-error);
   font-size: 0.85em;
   margin-top: var(--spacing-xs);
+}
+
+.field-error-list {
+  margin: 0;
+  padding-left: var(--spacing-lg);
 }
 
 .form-field.highlight,
@@ -637,18 +664,41 @@
 }
 
 .wizard-progress {
-  display: flex;
-  justify-content: space-between;
   margin-bottom: var(--spacing-lg);
   padding: 0 var(--spacing-md);
+  max-width: 100%;
+}
+
+.wizard-progress-list {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wizard-progress-item {
+  display: flex;
+  flex: 1;
 }
 
 .wizard-step {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   flex: 1;
   position: relative;
+}
+
+.wizard-step:not(button) {
+  cursor: default;
 }
 
 .wizard-step::after {
@@ -662,7 +712,7 @@
   z-index: 0;
 }
 
-.wizard-step:last-child::after {
+.wizard-progress-item:last-child .wizard-step::after {
   display: none;
 }
 
@@ -750,7 +800,6 @@
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-bg-alt);
   border-bottom: 1px solid var(--color-border);
-  flex-wrap: wrap;
   gap: var(--spacing-sm);
 }
 
@@ -763,7 +812,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  flex-wrap: wrap;
 }
 
 .preview-controls label {
@@ -812,7 +860,56 @@
   color: var(--color-error);
 }
 
+.error-link,
+.error-text {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  appearance: none;
+  border: 0;
+  padding: var(--spacing-xs);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.error-link {
+  cursor: pointer;
+}
+
+.error-link:hover {
+  text-decoration: underline;
+}
+
+.editor-container :where(
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  [role="button"],
+  [tabindex]
+):focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px var(--color-bg);
+}
+
 /* Utility Classes */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 .hidden {
   display: none !important;
 }
@@ -879,5 +976,39 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-container *,
+  .editor-container *::before,
+  .editor-container *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .form-field.highlight,
+  .form-section.highlight,
+  .wizard-field.highlight,
+  .loading::after,
+  .toast {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .editor-container :where(
+    button,
+    input,
+    select,
+    textarea,
+    summary,
+    [role="button"],
+    [tabindex]
+  ):focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 3px;
   }
 }
