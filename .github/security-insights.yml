@@ -12,6 +12,7 @@ project:
       affiliation: Linux Foundation
       primary: true
   documentation:
+    detailed-guide: https://security-insights.openssf.org/
     quickstart-guide: https://github.com/ossf/security-insights?tab=readme-ov-file#quick-start
   repositories:
     - name: Security Insights
