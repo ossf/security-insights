@@ -63,10 +63,14 @@ const FormBuilder = (function () {
   }
 
   function toHtmlPattern(pattern) {
+    const source = String(pattern);
+    if (source.includes('[[:')) {
+      return null;
+    }
     // HTML pattern expressions use the UnicodeSets (`v`) flag. A hyphen at the
     // end of a character class must therefore be escaped even though the same
     // schema expression is valid for JavaScript's traditional RegExp parser.
-    const candidate = String(pattern).replace(/(^|[^\\])-\]/g, '$1\\-]');
+    const candidate = source.replace(/(^|[^\\])-\]/g, '$1\\-]');
     try {
       // `v` is the mode required by the current HTML pattern specification.
       // Browsers without UnicodeSets support still use the older `u` behavior.
@@ -91,6 +95,14 @@ const FormBuilder = (function () {
     if (description) {
       container.appendChild(createTextElement('p', className, description));
     }
+  }
+
+  function getRemovalFocusIndex(removedIndex, enabledStates = []) {
+    if (enabledStates.length === 0) {
+      return -1;
+    }
+    const nextIndex = Math.min(removedIndex, enabledStates.length - 1);
+    return enabledStates[nextIndex] ? nextIndex : -1;
   }
 
   function resolveType(typeDef) {
@@ -416,7 +428,8 @@ const FormBuilder = (function () {
             items.length,
             minItems,
             path,
-            renderItems
+            renderItems,
+            focusAfterRemove
           )
         );
       });
@@ -424,6 +437,21 @@ const FormBuilder = (function () {
       addButton.textContent = invalidArray ? 'Replace with list' : '+ Add';
       addButton.disabled = isReadOnly(path)
         || (Number.isInteger(maxItems) && items.length >= maxItems);
+    }
+
+    function focusAfterRemove(index) {
+      const removeButtons = itemsContainer.querySelectorAll(
+        ':scope > .array-item > .array-item-controls button'
+      );
+      const focusIndex = getRemovalFocusIndex(
+        index,
+        Array.from(removeButtons, button => !button.disabled)
+      );
+      if (focusIndex >= 0) {
+        removeButtons[focusIndex].focus();
+      } else {
+        addButton.focus();
+      }
     }
 
     addButton.addEventListener('click', () => {
@@ -451,7 +479,8 @@ const FormBuilder = (function () {
     totalItems,
     minItems,
     arrayPath,
-    renderItems
+    renderItems,
+    focusAfterRemove
   ) {
     const container = document.createElement('div');
     container.className = 'array-item';
@@ -502,6 +531,7 @@ const FormBuilder = (function () {
       items.splice(index, 1);
       renderItems();
       triggerChange();
+      focusAfterRemove(index);
     });
 
     controls.appendChild(removeButton);
@@ -635,6 +665,7 @@ const FormBuilder = (function () {
     buildField,
     clearForm,
     getDefaultForType,
+    getRemovalFocusIndex,
     toHtmlPattern,
     toLabel
   };

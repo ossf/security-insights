@@ -897,6 +897,10 @@
   box-shadow: 0 0 0 2px var(--color-bg);
 }
 
+.editor-container .form-section-toggle:focus-visible {
+  outline-offset: -3px;
+}
+
 /* Utility Classes */
 .visually-hidden {
   position: absolute !important;

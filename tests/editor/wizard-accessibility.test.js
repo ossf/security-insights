@@ -75,7 +75,15 @@ test('schema regexes are translated for the HTML UnicodeSets pattern mode', () =
     '^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$'
   );
   assert.equal(FormBuilder.toHtmlPattern('^[1-9]+$'), '^[1-9]+$');
+  assert.equal(FormBuilder.toHtmlPattern('^[[:alpha:]]+$'), null);
   assert.equal(FormBuilder.toHtmlPattern('['), null);
+});
+
+test('array removal selects a surviving remove control or falls back to Add', () => {
+  assert.equal(FormBuilder.getRemovalFocusIndex(0, [true, true]), 0);
+  assert.equal(FormBuilder.getRemovalFocusIndex(2, [true, true]), 1);
+  assert.equal(FormBuilder.getRemovalFocusIndex(0, [false]), -1);
+  assert.equal(FormBuilder.getRemovalFocusIndex(0, []), -1);
 });
 
 test('every bundled schema pattern is compatible with native HTML validation', () => {

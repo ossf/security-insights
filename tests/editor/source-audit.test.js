@@ -78,7 +78,7 @@ test('editor exposes keyboard navigation and validation semantics', () => {
   assert.match(page, /id="wizard-progress" aria-label="Wizard progress"/);
   assert.match(
     page,
-    /id="yaml-output" tabindex="0"[\s\S]*aria-label="Generated YAML preview"/
+    /id="yaml-output" tabindex="0" role="region"[\s\S]*aria-label="Generated YAML preview"/
   );
   assert.match(
     page,
@@ -92,13 +92,23 @@ test('editor exposes keyboard navigation and validation semantics', () => {
   assert.match(app, /toast\.setAttribute\('role', type === 'error' \? 'alert' : 'status'\)/);
   assert.match(app, /target\.element\.focus\(\{ preventScroll: true \}\)/);
   assert.match(app, /Wizard\.getStepIndexForPath\(path\)/);
+  assert.match(app, /getErrorListSignature\(/);
+  assert.match(app, /signature === renderedErrorsSignature/);
+  assert.match(app, /setMode\('form'\);\s*elements\.modeForm\.focus\(\)/);
+  assert.match(app, /if \(currentMode === 'wizard'\) \{\s*focusWizardHeading\(\)/);
   assert.match(form, /toggle\.setAttribute\('aria-controls', contentId\)/);
   assert.match(form, /toggle\.type = 'button'/);
   assert.doesNotMatch(form, /setAttribute\('role', 'button'\)/);
   assert.match(form, /container\.setAttribute\('aria-labelledby', heading\.id\)/);
+  assert.match(form, /function focusAfterRemove\(index\)/);
+  assert.match(form, /triggerChange\(\);\s*focusAfterRemove\(index\);/);
   assert.match(wizard, /className = 'wizard-progress-list'/);
   assert.match(wizard, /setAttribute\('aria-current', 'step'\)/);
   assert.match(styles, /:focus-visible/);
+  assert.match(
+    styles,
+    /\.editor-container \.form-section-toggle:focus-visible\s*\{\s*outline-offset: -3px;/
+  );
   assert.match(
     styles,
     /\.wizard-progress-item:last-child \.wizard-step::after/

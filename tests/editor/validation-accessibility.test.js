@@ -64,6 +64,36 @@ test('groups every validation message by its exact path in stable order', () => 
   );
 });
 
+test('error-list signatures change only when mode or error content changes', () => {
+  const errors = [{ path: 'project.name', message: 'is required' }];
+  const signature = ValidationAccessibility.getErrorListSignature('form', errors);
+
+  assert.equal(
+    ValidationAccessibility.getErrorListSignature('form'),
+    JSON.stringify(['form'])
+  );
+  assert.equal(
+    ValidationAccessibility.getErrorListSignature('form', [
+      { message: 'document is invalid' }
+    ]),
+    JSON.stringify(['form', ['', 'document is invalid']])
+  );
+  assert.equal(
+    ValidationAccessibility.getErrorListSignature('form', [...errors]),
+    signature
+  );
+  assert.notEqual(
+    ValidationAccessibility.getErrorListSignature('wizard', errors),
+    signature
+  );
+  assert.notEqual(
+    ValidationAccessibility.getErrorListSignature('form', [
+      { path: 'project.name', message: 'is too short' }
+    ]),
+    signature
+  );
+});
+
 test('only returns a validation message owned directly by the field', () => {
   const message = new FakeElement();
   const field = new FakeElement({ matches: { [MESSAGE_SELECTOR]: message } });
@@ -111,8 +141,10 @@ test('array actions are described but never represented as invalid values', () =
   assert.equal(ValidationAccessibility.markTarget(field, 'array-error'), button);
   assert.equal(button.getAttribute('aria-invalid'), null);
   assert.equal(button.getAttribute('aria-describedby'), 'array-error');
+  assert.equal(field.classes.has('validation-group-error'), true);
   ValidationAccessibility.clearTarget(field, 'array-error');
   assert.equal(button.getAttribute('aria-describedby'), null);
+  assert.equal(field.classes.has('validation-group-error'), false);
 
   assert.doesNotThrow(() => ValidationAccessibility.clearTarget(field, 'missing-error'));
 });
@@ -124,7 +156,7 @@ test('structural errors create and fully remove an accessible validation group',
   assert.equal(field.getAttribute('role'), 'group');
   assert.equal(
     field.getAttribute('aria-label'),
-    'project repositories core team validation group'
+    'project repositories item 1 core team validation group'
   );
   assert.equal(field.getAttribute('tabindex'), '-1');
   assert.equal(field.getAttribute('aria-invalid'), null);

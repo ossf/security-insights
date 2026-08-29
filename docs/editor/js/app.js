@@ -11,6 +11,7 @@ const App = (function () {
   let currentMode = 'form';
   let validationInterval = null;
   let lastValidation = null;
+  let renderedErrorsSignature = null;
   let schemaLoadId = 0;
   let elements = {};
 
@@ -355,6 +356,7 @@ const App = (function () {
     const isLastStep = Wizard.getCurrentStep() === Wizard.getTotalSteps() - 1;
     if (isLastStep) {
       setMode('form');
+      elements.modeForm.focus();
       showToast(
         'Wizard completed. You can make final edits and download the file.',
         'success'
@@ -801,6 +803,15 @@ const App = (function () {
   }
 
   function showErrors(errors) {
+    const signature = ValidationAccessibility.getErrorListSignature(
+      currentMode,
+      errors
+    );
+    if (signature === renderedErrorsSignature) {
+      elements.errorPanel.classList.remove('hidden');
+      return;
+    }
+    renderedErrorsSignature = signature;
     elements.errorList.replaceChildren();
     errors.forEach(error => {
       const item = document.createElement('li');
@@ -886,6 +897,9 @@ const App = (function () {
       }
     }
     if (!field) {
+      if (currentMode === 'wizard') {
+        focusWizardHeading();
+      }
       return;
     }
     const prefersReducedMotion = window.matchMedia

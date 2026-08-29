@@ -21,6 +21,13 @@ const ValidationAccessibility = (function () {
     return Array.from(groups, ([path, messages]) => ({ path, messages }));
   }
 
+  function getErrorListSignature(mode, errors = []) {
+    return JSON.stringify([
+      mode,
+      ...errors.map(error => [error.path || '', error.message])
+    ]);
+  }
+
   function getOwnedMessage(field) {
     return field && typeof field.querySelector === 'function'
       ? field.querySelector(OWNED_MESSAGE_SELECTOR)
@@ -29,7 +36,7 @@ const ValidationAccessibility = (function () {
 
   function toGroupLabel(path) {
     const words = String(path || 'document')
-      .replace(/\[\d+\]/g, ' ')
+      .replace(/\[(\d+)\]/g, (_, index) => ` item ${Number(index) + 1} `)
       .replace(/[._-]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
@@ -101,7 +108,7 @@ const ValidationAccessibility = (function () {
         }
       }
       target.element.setAttribute('aria-invalid', 'true');
-    } else if (target.element === field) {
+    } else {
       field.classList.add('validation-group-error');
     }
     addDescribedBy(target.element, messageId);
@@ -128,8 +135,11 @@ const ValidationAccessibility = (function () {
     }
     removeDescribedBy(target.element, messageId);
 
-    if (target.element === field) {
+    if (!target.supportsInvalid) {
       field.classList.remove('validation-group-error');
+    }
+
+    if (target.element === field) {
       if (field.dataset.validationInjectedRole === 'true') {
         field.removeAttribute('role');
         delete field.dataset.validationInjectedRole;
@@ -151,6 +161,7 @@ const ValidationAccessibility = (function () {
 
   return {
     groupErrors,
+    getErrorListSignature,
     getOwnedMessage,
     prepareTarget,
     markTarget,
