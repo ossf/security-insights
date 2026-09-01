@@ -25,6 +25,22 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: cmd/cue2openapi/go.mod
+          cache-dependency-path: |
+            cmd/cue2openapi/go.sum
+            cmd/openapi2md/go.sum
+
+      - name: Test CUE to OpenAPI converter
+        working-directory: cmd/cue2openapi
+        run: go test -count=1 ./...
+
+      - name: Test OpenAPI to Markdown converter
+        working-directory: cmd/openapi2md
+        run: go test -count=1 ./...
+
       - name: Setup Cue
         uses: cue-lang/setup-cue@a93fa358375740cd8b0078f76355512b9208acb1 # v1.0.1
 

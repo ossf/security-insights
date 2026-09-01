@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"cuelang.org/go/cue/ast"
+	"cuelang.org/go/cue/literal"
 	"cuelang.org/go/cue/load"
 	"cuelang.org/go/cue/token"
 	"github.com/goccy/go-yaml"
@@ -46,6 +47,7 @@ type SchemaInfo struct {
 	Pattern     string                 `yaml:"pattern,omitempty" json:"pattern,omitempty"`
 	Format      string                 `yaml:"format,omitempty" json:"format,omitempty"`
 	Items       interface{}            `yaml:"items,omitempty" json:"items,omitempty"`
+	Enum        []string               `yaml:"enum,omitempty" json:"enum,omitempty"`
 	Ref         string                 `yaml:"$ref,omitempty" json:"$ref,omitempty"`
 }
 
@@ -301,7 +303,7 @@ func convertStructToSchema(st *ast.StructLit, spec *OpenAPISpec, description str
 				if fieldName != "" {
 					schema.Properties[fieldName] = fieldSchema
 					// Check if field is required
-					if x.Optional == token.NoPos {
+					if x.Constraint != token.OPTION {
 						schema.Required = append(schema.Required, fieldName)
 					}
 				}
@@ -348,6 +350,8 @@ func convertExprToSchema(expr ast.Expr, spec *OpenAPISpec, description string) i
 		return convertIdentToSchema(x, spec, description)
 	case *ast.BinaryExpr:
 		return convertBinaryExprToSchema(x, spec, description)
+	case *ast.ParenExpr:
+		return convertExprToSchema(x.X, spec, description)
 	case *ast.ListLit:
 		return convertListLitToSchema(x, spec, description)
 	case *ast.StructLit:
@@ -404,10 +408,140 @@ func convertBinaryExprToSchema(expr *ast.BinaryExpr, spec *OpenAPISpec, descript
 
 	// Handle union types (disjunctions)
 	if expr.Op == token.OR {
+		if isStringListUnion(expr) {
+			return &SchemaInfo{
+				Type:        "array",
+				Description: description,
+				Items:       &SchemaInfo{Type: "string"},
+			}
+		}
+		if values, ok := stringLiteralUnion(expr); ok {
+			return &SchemaInfo{
+				Type:        "string",
+				Description: description,
+				Enum:        values,
+			}
+		}
 		return &SchemaInfo{Type: "string", Description: description}
 	}
 
 	return &SchemaInfo{Type: "string", Description: description}
+}
+
+func stringLiteralUnion(expr ast.Expr) ([]string, bool) {
+	values := make([]string, 0)
+	seen := make(map[string]struct{})
+	if !collectStringLiteralUnion(expr, &values, seen) || len(values) == 0 {
+		return nil, false
+	}
+	return values, true
+}
+
+func collectStringLiteralUnion(expr ast.Expr, values *[]string, seen map[string]struct{}) bool {
+	switch x := expr.(type) {
+	case *ast.ParenExpr:
+		return collectStringLiteralUnion(x.X, values, seen)
+	case *ast.UnaryExpr:
+		return x.Op == token.MUL && collectStringLiteralUnion(x.X, values, seen)
+	case *ast.BinaryExpr:
+		if x.Op != token.OR {
+			return false
+		}
+		return collectStringLiteralUnion(x.X, values, seen) &&
+			collectStringLiteralUnion(x.Y, values, seen)
+	case *ast.BasicLit:
+		if x.Kind != token.STRING {
+			return false
+		}
+		quote, _, _, err := literal.ParseQuotes(x.Value, x.Value)
+		if err != nil || !quote.IsDouble() {
+			return false
+		}
+		value, err := literal.Unquote(x.Value)
+		if err != nil {
+			return false
+		}
+		if _, exists := seen[value]; !exists {
+			seen[value] = struct{}{}
+			*values = append(*values, value)
+		}
+		return true
+	default:
+		return false
+	}
+}
+
+func isStringListUnion(expr ast.Expr) bool {
+	binary, ok := expr.(*ast.BinaryExpr)
+	return ok && binary.Op == token.OR &&
+		isStringListExpression(binary.X) && isStringListExpression(binary.Y)
+}
+
+func isStringListExpression(expr ast.Expr) bool {
+	switch x := expr.(type) {
+	case *ast.ParenExpr:
+		return isStringListExpression(x.X)
+	case *ast.UnaryExpr:
+		return x.Op == token.MUL && isStringListExpression(x.X)
+	case *ast.BinaryExpr:
+		return x.Op == token.OR &&
+			isStringListExpression(x.X) && isStringListExpression(x.Y)
+	case *ast.ListLit:
+		return isStringListLiteral(x)
+	default:
+		return false
+	}
+}
+
+func isStringListLiteral(list *ast.ListLit) bool {
+	if len(list.Elts) == 0 {
+		return false
+	}
+	for _, element := range list.Elts {
+		switch x := element.(type) {
+		case *ast.Ellipsis:
+			if !isStringTypeExpression(x.Type) {
+				return false
+			}
+		default:
+			if !isStringListElement(element) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func isStringListElement(expr ast.Expr) bool {
+	switch x := expr.(type) {
+	case *ast.ParenExpr:
+		return isStringListElement(x.X)
+	case *ast.UnaryExpr:
+		return x.Op == token.MUL && isStringListElement(x.X)
+	case *ast.BasicLit:
+		if x.Kind != token.STRING {
+			return false
+		}
+		quote, _, _, err := literal.ParseQuotes(x.Value, x.Value)
+		return err == nil && quote.IsDouble()
+	case *ast.Ident:
+		return x.Name == "string"
+	default:
+		return false
+	}
+}
+
+func isStringTypeExpression(expr ast.Expr) bool {
+	switch x := expr.(type) {
+	case *ast.ParenExpr:
+		return isStringTypeExpression(x.X)
+	case *ast.UnaryExpr:
+		return x.Op == token.MUL && isStringTypeExpression(x.X)
+	case *ast.Ident:
+		return x.Name == "string"
+	default:
+		return false
+	}
 }
 
 func convertListLitToSchema(list *ast.ListLit, spec *OpenAPISpec, description string) interface{} {
