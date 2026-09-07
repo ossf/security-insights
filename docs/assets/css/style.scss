@@ -105,6 +105,11 @@ a:active {
 
 .nav-dropdown-toggle {
   cursor: pointer;
+  list-style: none;
+}
+
+.nav-dropdown-toggle::-webkit-details-marker {
+  display: none;
 }
 
 .nav-dropdown-toggle:hover {
@@ -124,7 +129,8 @@ a:active {
   margin-top: 4px;
 }
 
-.nav-dropdown:hover .nav-dropdown-content {
+.nav-dropdown[open] .nav-dropdown-content,
+.nav-dropdown:focus-within .nav-dropdown-content {
   display: block;
 }
 
@@ -138,6 +144,38 @@ a:active {
 .nav-dropdown-item:hover {
   background-color: #f1f1f1;
   text-decoration: underline;
+}
+
+@media screen and (max-width: 600px) {
+  .header-wrapper {
+    padding-top: 12px;
+  }
+
+  .site-logo img {
+    height: 64px;
+  }
+
+  .site-title {
+    font-size: 1.1rem;
+  }
+
+  .nav-items {
+    display: block;
+  }
+
+  .nav-items > .nav-item,
+  .nav-dropdown {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .nav-dropdown-content {
+    position: static;
+    min-width: 0;
+    box-shadow: none;
+    border-left: 3px solid #45208c;
+    margin: 4px 0 0 8px;
+  }
 }
 
 /* Radio-driven tabs (no JS). The radios are visually hidden but remain
@@ -208,4 +246,3 @@ a:active {
 #tab-multi:checked ~ #panel-multi {
   display: block;
 }
-

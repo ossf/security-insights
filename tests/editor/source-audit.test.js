@@ -115,6 +115,23 @@ test('editor exposes keyboard navigation and validation semantics', () => {
   );
 });
 
+test('site navigation uses native keyboard-operable submenus', () => {
+  const nav = fs.readFileSync(
+    path.join(root, 'docs/_includes/nav-items.html'),
+    'utf8'
+  );
+  const styles = fs.readFileSync(
+    path.join(root, 'docs/assets/css/style.scss'),
+    'utf8'
+  );
+
+  assert.match(nav, /<details class="nav-dropdown">/);
+  assert.match(nav, /<summary class="nav-item nav-dropdown-toggle">/);
+  assert.match(nav, /<\/summary>/);
+  assert.match(styles, /\.nav-dropdown\[open\] \.nav-dropdown-content/);
+  assert.match(styles, /@media screen and \(max-width: 600px\)/);
+});
+
 const cueAvailable = spawnSync('cue', ['version'], {
   cwd: root,
   encoding: 'utf8'

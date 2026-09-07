@@ -3,6 +3,7 @@ name: CI Checks
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -37,8 +38,14 @@ jobs:
       - name: Install editor test dependencies
         run: npm ci
 
+      - name: Install browser test dependencies
+        run: npx playwright install --with-deps chromium
+
       - name: Test editor
         run: make testeditor
+
+      - name: Test editor in browser
+        run: npm run test:browser
 
       - name: Validate schema.cue
         run: make lintcue
