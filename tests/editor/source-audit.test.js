@@ -45,7 +45,7 @@ test('editor source avoids user-data innerHTML and wires secure script loading',
   assert.match(app, /EditorUtils\.parseYamlDocument/);
   assert.match(
     page,
-    /integrity="sha384-S9ICdlb\+JXmKnf3zbM1G\+PBNWbhB7ARTUpJyvroFrHHHR8JsKt4oO\+kPyfzbT\+TM"/
+    /integrity="sha384-uwLg6oO8ZhFG2SuQfgmkMtosjtrFYlkPspa\/cXS\+b3D8GLRTHMDl\/mTwqImdlKQO"/
   );
   assert.match(page, /crossorigin="anonymous"/);
   assert.match(page, /class="editor-main hidden"/);
