@@ -28,7 +28,7 @@ relative_links:
   enabled:     true
   collections: false
 
-remote_theme: jekyll/minima
+remote_theme: jekyll/minima@4de322363fca5927e6f4012cb94f6dad69ab5e6c
 
 # Minima-specific settings
 minima:

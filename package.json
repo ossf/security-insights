@@ -2,9 +2,11 @@
   "name": "security-insights-editor-tests",
   "private": true,
   "scripts": {
-    "test": "node --test tests/editor/*.test.js"
+    "test": "node --test tests/editor/*.test.js",
+    "test:browser": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "js-yaml": "4.3.2"
   }
 }

@@ -45,7 +45,7 @@ test('editor source avoids user-data innerHTML and wires secure script loading',
   assert.match(app, /EditorUtils\.parseYamlDocument/);
   assert.match(
     page,
-    /integrity="sha384-S9ICdlb\+JXmKnf3zbM1G\+PBNWbhB7ARTUpJyvroFrHHHR8JsKt4oO\+kPyfzbT\+TM"/
+    /integrity="sha384-uwLg6oO8ZhFG2SuQfgmkMtosjtrFYlkPspa\/cXS\+b3D8GLRTHMDl\/mTwqImdlKQO"/
   );
   assert.match(page, /crossorigin="anonymous"/);
   assert.match(page, /class="editor-main hidden"/);
@@ -53,6 +53,83 @@ test('editor source avoids user-data innerHTML and wires secure script loading',
     page.indexOf('/editor/js/editor-utils.js')
       < page.indexOf('/editor/js/cue-parser.js')
   );
+});
+
+test('editor exposes keyboard navigation and validation semantics', () => {
+  const app = fs.readFileSync(path.join(root, 'docs/editor/js/app.js'), 'utf8');
+  const form = fs.readFileSync(
+    path.join(root, 'docs/editor/js/form-builder.js'),
+    'utf8'
+  );
+  const wizard = fs.readFileSync(
+    path.join(root, 'docs/editor/js/wizard.js'),
+    'utf8'
+  );
+  const page = fs.readFileSync(path.join(root, 'docs/editor/index.html'), 'utf8');
+  const styles = fs.readFileSync(
+    path.join(root, 'docs/editor/css/editor.css'),
+    'utf8'
+  );
+
+  assert.match(page, /class="mode-selector" role="tablist"/);
+  assert.match(page, /<details aria-label="Editor configuration">/);
+  assert.match(page, /id="mode-form"[^>]*role="tab"[^>]*aria-selected="true"/);
+  assert.match(page, /id="status-text" role="status" aria-live="polite"/);
+  assert.match(page, /id="wizard-progress" aria-label="Wizard progress"/);
+  assert.match(
+    page,
+    /id="yaml-output" tabindex="0" role="region"[\s\S]*aria-label="Generated YAML preview"/
+  );
+  assert.match(
+    page,
+    /id="error-panel" role="region"[\s\S]*aria-labelledby="validation-errors-heading"/
+  );
+  assert.match(app, /event\.key === 'ArrowRight'/);
+  assert.match(app, /setAttribute\('aria-selected'/);
+  assert.match(app, /ValidationAccessibility\.markTarget\(field, message\.id\)/);
+  assert.match(app, /ValidationAccessibility\.getOwnedMessage\(element\)/);
+  assert.match(app, /ValidationAccessibility\.getScrollBehavior\(prefersReducedMotion\)/);
+  assert.match(app, /toast\.setAttribute\('role', type === 'error' \? 'alert' : 'status'\)/);
+  assert.match(app, /target\.element\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(app, /Wizard\.getStepIndexForPath\(path\)/);
+  assert.match(app, /getErrorListSignature\(/);
+  assert.match(app, /signature === renderedErrorsSignature/);
+  assert.match(app, /setMode\('form'\);\s*elements\.modeForm\.focus\(\)/);
+  assert.match(app, /if \(currentMode === 'wizard'\) \{\s*focusWizardHeading\(\)/);
+  assert.match(form, /toggle\.setAttribute\('aria-controls', contentId\)/);
+  assert.match(form, /toggle\.type = 'button'/);
+  assert.doesNotMatch(form, /setAttribute\('role', 'button'\)/);
+  assert.match(form, /container\.setAttribute\('aria-labelledby', heading\.id\)/);
+  assert.match(form, /function focusAfterRemove\(index\)/);
+  assert.match(form, /triggerChange\(\);\s*focusAfterRemove\(index\);/);
+  assert.match(wizard, /className = 'wizard-progress-list'/);
+  assert.match(wizard, /setAttribute\('aria-current', 'step'\)/);
+  assert.match(styles, /:focus-visible/);
+  assert.match(
+    styles,
+    /\.editor-container \.form-section-toggle:focus-visible\s*\{\s*outline-offset: -3px;/
+  );
+  assert.match(
+    styles,
+    /\.wizard-progress-item:last-child \.wizard-step::after/
+  );
+});
+
+test('site navigation uses native keyboard-operable submenus', () => {
+  const nav = fs.readFileSync(
+    path.join(root, 'docs/_includes/nav-items.html'),
+    'utf8'
+  );
+  const styles = fs.readFileSync(
+    path.join(root, 'docs/assets/css/style.scss'),
+    'utf8'
+  );
+
+  assert.match(nav, /<details class="nav-dropdown">/);
+  assert.match(nav, /<summary class="nav-item nav-dropdown-toggle">/);
+  assert.match(nav, /<\/summary>/);
+  assert.match(styles, /\.nav-dropdown\[open\] \.nav-dropdown-content/);
+  assert.match(styles, /@media screen and \(max-width: 600px\)/);
 });
 
 const cueAvailable = spawnSync('cue', ['version'], {

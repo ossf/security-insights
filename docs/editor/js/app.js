@@ -11,6 +11,7 @@ const App = (function () {
   let currentMode = 'form';
   let validationInterval = null;
   let lastValidation = null;
+  let renderedErrorsSignature = null;
   let schemaLoadId = 0;
   let elements = {};
 
@@ -80,6 +81,9 @@ const App = (function () {
     elements.reloadSchemaBtn.addEventListener('click', loadSchema);
     elements.modeForm.addEventListener('click', () => setMode('form'));
     elements.modeWizard.addEventListener('click', () => setMode('wizard'));
+    [elements.modeForm, elements.modeWizard].forEach(element => {
+      element.addEventListener('keydown', handleModeKeydown);
+    });
     elements.browseBtn.addEventListener('click', () => elements.fileInput.click());
     elements.fileInput.addEventListener('change', handleFileSelect);
     elements.dropZone.addEventListener('dragover', handleDragOver);
@@ -238,9 +242,33 @@ const App = (function () {
     }
   }
 
+  function handleModeKeydown(event) {
+    const modes = ['form', 'wizard'];
+    let nextIndex = modes.indexOf(currentMode);
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      nextIndex = (nextIndex - 1 + modes.length) % modes.length;
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      nextIndex = (nextIndex + 1) % modes.length;
+    } else if (event.key === 'Home') {
+      nextIndex = 0;
+    } else if (event.key === 'End') {
+      nextIndex = modes.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    setMode(modes[nextIndex]);
+    (nextIndex === 0 ? elements.modeForm : elements.modeWizard).focus();
+  }
+
   function updateModeUI(rebuild = true) {
     elements.modeForm.classList.toggle('active', currentMode === 'form');
     elements.modeWizard.classList.toggle('active', currentMode === 'wizard');
+    elements.modeForm.setAttribute('aria-selected', String(currentMode === 'form'));
+    elements.modeWizard.setAttribute('aria-selected', String(currentMode === 'wizard'));
+    elements.modeForm.tabIndex = currentMode === 'form' ? 0 : -1;
+    elements.modeWizard.tabIndex = currentMode === 'wizard' ? 0 : -1;
     elements.formEditor.classList.toggle('hidden', currentMode !== 'form');
     elements.wizardEditor.classList.toggle('hidden', currentMode !== 'wizard');
     if (rebuild && state.dataLoaded) {
@@ -312,6 +340,7 @@ const App = (function () {
       Wizard.buildProgress(elements.wizardProgress);
       Wizard.buildContent(elements.wizardContent);
       updateWizardNav();
+      focusWizardHeading();
     }
     updatePreview();
   }
@@ -319,6 +348,7 @@ const App = (function () {
   function wizardPrev() {
     if (Wizard.prevStep()) {
       buildWizard();
+      focusWizardHeading();
     }
   }
 
@@ -326,12 +356,21 @@ const App = (function () {
     const isLastStep = Wizard.getCurrentStep() === Wizard.getTotalSteps() - 1;
     if (isLastStep) {
       setMode('form');
+      elements.modeForm.focus();
       showToast(
         'Wizard completed. You can make final edits and download the file.',
         'success'
       );
     } else if (Wizard.nextStep()) {
       buildWizard();
+      focusWizardHeading();
+    }
+  }
+
+  function focusWizardHeading() {
+    const heading = elements.wizardContent.querySelector('.wizard-step-heading');
+    if (heading) {
+      heading.focus();
     }
   }
 
@@ -675,9 +714,14 @@ const App = (function () {
     updateModeUI(true);
     updatePreview();
     runValidation();
+    (currentMode === 'form' ? elements.modeForm : elements.modeWizard).focus();
   }
 
   function handleSingleMaintainerToggle() {
+    elements.singleMaintainerCheckbox.setAttribute(
+      'aria-expanded',
+      String(elements.singleMaintainerCheckbox.checked)
+    );
     elements.singleMaintainerFields.classList.toggle(
       'hidden',
       !elements.singleMaintainerCheckbox.checked
@@ -742,7 +786,14 @@ const App = (function () {
       setStatus('valid', 'Valid');
       elements.errorPanel.classList.add('hidden');
     } else {
-      setStatus('invalid', `${errors.length} error(s)`);
+      const firstError = errors[0];
+      const firstErrorSummary = `${firstError.path || 'Root'}: ${firstError.message}`;
+      setStatus(
+        'invalid',
+        errors.length === 1
+          ? `1 validation error. ${firstErrorSummary}`
+          : `${errors.length} validation errors. First: ${firstErrorSummary}`
+      );
       showErrors(errors);
     }
     elements.lastValidated.textContent =
@@ -752,53 +803,115 @@ const App = (function () {
   }
 
   function showErrors(errors) {
+    const signature = ValidationAccessibility.getErrorListSignature(
+      currentMode,
+      errors
+    );
+    if (signature === renderedErrorsSignature) {
+      elements.errorPanel.classList.remove('hidden');
+      return;
+    }
+    renderedErrorsSignature = signature;
     elements.errorList.replaceChildren();
     errors.forEach(error => {
       const item = document.createElement('li');
+      const navigable = canNavigateToError(error.path);
+      const content = document.createElement(navigable ? 'button' : 'span');
+      if (navigable) {
+        content.type = 'button';
+        content.className = 'error-link';
+      } else {
+        content.className = 'error-text';
+      }
       const path = document.createElement('strong');
       path.textContent = `${error.path || 'Root'}:`;
-      item.appendChild(path);
-      item.appendChild(document.createTextNode(` ${error.message}`));
-      item.addEventListener('click', () => scrollToField(error.path));
-      item.style.cursor = 'pointer';
+      content.appendChild(path);
+      content.appendChild(document.createTextNode(` ${error.message}`));
+      if (navigable) {
+        content.addEventListener('click', () => scrollToField(error.path));
+      }
+      item.appendChild(content);
       elements.errorList.appendChild(item);
     });
     elements.errorPanel.classList.remove('hidden');
   }
 
+  function canNavigateToError(path) {
+    if (!path) {
+      return false;
+    }
+    const root = currentMode === 'form' ? elements.formEditor : elements.wizardEditor;
+    return Boolean(EditorUtils.findByDataPath(root, path))
+      || (currentMode === 'wizard' && Wizard.getStepIndexForPath(path) >= 0);
+  }
+
   function markFieldErrors(errors) {
     document.querySelectorAll('[data-path].has-error').forEach(element => {
       element.classList.remove('has-error');
-      const message = element.querySelector('[data-validation-error]');
+      const message = ValidationAccessibility.getOwnedMessage(element);
       if (message) {
+        ValidationAccessibility.clearTarget(element, message.id);
         message.remove();
       }
     });
 
-    errors.forEach(error => {
+    ValidationAccessibility.groupErrors(errors).forEach((group, groupIndex) => {
       const root = currentMode === 'form' ? elements.formEditor : elements.wizardEditor;
-      const field = EditorUtils.findByDataPath(root, error.path);
+      const field = EditorUtils.findByDataPath(root, group.path);
       if (!field) {
         return;
       }
       field.classList.add('has-error');
-      if (!field.querySelector('[data-validation-error]')) {
-        const message = document.createElement('div');
-        message.className = 'field-error';
-        message.dataset.validationError = 'true';
-        message.textContent = error.message;
-        field.appendChild(message);
+      const message = document.createElement('div');
+      message.className = 'field-error';
+      message.dataset.validationError = 'true';
+      message.id = `validation-error-${groupIndex}`;
+      if (group.messages.length === 1) {
+        message.textContent = group.messages[0];
+      } else {
+        const list = document.createElement('ul');
+        list.className = 'field-error-list';
+        group.messages.forEach(errorMessage => {
+          const item = document.createElement('li');
+          item.textContent = errorMessage;
+          list.appendChild(item);
+        });
+        message.appendChild(list);
       }
+      field.appendChild(message);
+
+      ValidationAccessibility.markTarget(field, message.id);
     });
   }
 
   function scrollToField(path) {
-    const root = currentMode === 'form' ? elements.formEditor : elements.wizardEditor;
-    const field = EditorUtils.findByDataPath(root, path);
+    let root = currentMode === 'form' ? elements.formEditor : elements.wizardEditor;
+    let field = EditorUtils.findByDataPath(root, path);
+    if (!field && currentMode === 'wizard') {
+      const stepIndex = Wizard.getStepIndexForPath(path);
+      if (stepIndex >= 0 && Wizard.goToStep(stepIndex)) {
+        buildWizard();
+        runValidation();
+        root = elements.wizardEditor;
+        field = EditorUtils.findByDataPath(root, path);
+      }
+    }
     if (!field) {
+      if (currentMode === 'wizard') {
+        focusWizardHeading();
+      }
       return;
     }
-    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const prefersReducedMotion = window.matchMedia
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    field.scrollIntoView({
+      behavior: ValidationAccessibility.getScrollBehavior(prefersReducedMotion),
+      block: 'center'
+    });
+    const target = ValidationAccessibility.prepareTarget(field);
+    if (target) {
+      target.element.focus({ preventScroll: true });
+    }
     field.classList.add('highlight');
     setTimeout(() => field.classList.remove('highlight'), 2000);
   }
@@ -817,7 +930,9 @@ const App = (function () {
     } else {
       elements.statusIcon.textContent = '●';
     }
-    elements.statusText.textContent = message;
+    if (elements.statusText.textContent !== message) {
+      elements.statusText.textContent = message;
+    }
   }
 
   async function copyYaml() {
@@ -836,6 +951,7 @@ const App = (function () {
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
+    toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3000);

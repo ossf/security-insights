@@ -2,8 +2,8 @@
   {%- if site.navigation -%}
     {%- for nav_item in site.navigation -%}
       {%- if nav_item.children -%}
-        <div class="nav-dropdown">
-          <span class="nav-item nav-dropdown-toggle">{{ nav_item.name | escape }}</span>
+        <details class="nav-dropdown">
+          <summary class="nav-item nav-dropdown-toggle">{{ nav_item.name | escape }}</summary>
           <div class="nav-dropdown-content">
             {%- for child in nav_item.children -%}
               {%- assign child_page = site.pages | where: "path", child.path | first -%}
@@ -16,7 +16,7 @@
               {%- endif -%}
             {%- endfor -%}
           </div>
-        </div>
+        </details>
       {%- else -%}
         {%- assign hyperpage = site.pages | where: "path", nav_item.path | first -%}
         {%- if hyperpage -%}
@@ -41,4 +41,3 @@
     {%- endfor %}
   {%- endif -%}
 </div>
-
