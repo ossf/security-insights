@@ -6,6 +6,10 @@ const schemaSource = fs.readFileSync(
   path.join(__dirname, '..', '..', 'spec', 'schema.cue'),
   'utf8'
 );
+const versionSource = fs.readFileSync(
+  path.join(__dirname, '..', '..', 'VERSION'),
+  'utf8'
+);
 const yamlSource = fs.readFileSync(
   path.join(__dirname, '..', '..', 'node_modules', 'js-yaml', 'dist', 'js-yaml.min.js'),
   'utf8'
@@ -16,8 +20,11 @@ const exampleSource = fs.readFileSync(
 );
 
 test.beforeEach(async ({ page }) => {
-  await page.route('https://raw.githubusercontent.com/**', route =>
+  await page.route('**/spec/schema.cue', route =>
     route.fulfill({ status: 200, contentType: 'text/plain', body: schemaSource })
+  );
+  await page.route('**/VERSION', route =>
+    route.fulfill({ status: 200, contentType: 'text/plain', body: versionSource })
   );
   await page.route('https://cdn.jsdelivr.net/**', route =>
     route.fulfill({ status: 200, contentType: 'application/javascript', body: yamlSource })
@@ -29,6 +36,9 @@ test('keyboard users can move through the editor workflow', async ({ page }) => 
   await expect(page.locator('#status-text')).toHaveText('Schema loaded');
 
   await page.getByRole('button', { name: 'Start Fresh' }).click();
+  await expect(page.locator('[data-path="header.schema-version"] input')).toHaveValue(
+    versionSource.trim().replace(/^v/, '')
+  );
   await page.getByRole('tab', { name: 'Wizard' }).click();
   await expect(page.locator('#wizard-editor')).toBeVisible();
   await expect(page.locator('.wizard-step-heading')).toHaveText('Header');

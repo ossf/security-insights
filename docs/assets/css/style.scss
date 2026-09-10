@@ -108,6 +108,21 @@ a:active {
   list-style: none;
 }
 
+.nav-dropdown-toggle::after {
+  content: "";
+  display: inline-block;
+  margin-left: 6px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown[open] .nav-dropdown-toggle::after {
+  transform: rotate(180deg);
+}
+
 .nav-dropdown-toggle::-webkit-details-marker {
   display: none;
 }
@@ -129,8 +144,7 @@ a:active {
   margin-top: 4px;
 }
 
-.nav-dropdown[open] .nav-dropdown-content,
-.nav-dropdown:focus-within .nav-dropdown-content {
+.nav-dropdown[open] .nav-dropdown-content {
   display: block;
 }
 
