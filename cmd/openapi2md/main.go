@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -37,6 +38,7 @@ type Schema struct {
 	Pattern     string                 `yaml:"pattern"`
 	Format      string                 `yaml:"format"`
 	Items       interface{}            `yaml:"items"`
+	Enum        []string               `yaml:"enum"`
 	Ref         string                 `yaml:"$ref"`
 }
 
@@ -542,10 +544,51 @@ func formatFieldWithNested(fieldName string, fieldSchema Schema, spec OpenAPISpe
 	var buf strings.Builder
 	fieldLine, description := formatFieldInline(fieldName, fieldSchema, spec, "", isRequired, schemaToFile)
 	buf.WriteString(fieldLine + "\n\n")
+	if len(fieldSchema.Enum) > 0 {
+		allowed := make([]string, 0, len(fieldSchema.Enum))
+		for _, value := range fieldSchema.Enum {
+			allowed = append(allowed, formatEnumValue(value))
+		}
+		if description != "" {
+			description += "\n\n"
+		}
+		description += "Allowed values: " + strings.Join(allowed, ", ") + "."
+	}
 	if description != "" {
 		buf.WriteString(description + "\n")
 	}
 	return buf.String()
+}
+
+func formatEnumValue(value string) string {
+	display := value
+	if value == "" || strings.TrimSpace(value) != value ||
+		strings.IndexFunc(value, func(r rune) bool { return !unicode.IsPrint(r) }) >= 0 {
+		display = strconv.Quote(value)
+	}
+	return markdownCodeSpan(display)
+}
+
+func markdownCodeSpan(value string) string {
+	maxRun := 0
+	currentRun := 0
+	for _, r := range value {
+		if r == '`' {
+			currentRun++
+			if currentRun > maxRun {
+				maxRun = currentRun
+			}
+			continue
+		}
+		currentRun = 0
+	}
+
+	fence := strings.Repeat("`", maxRun+1)
+	padding := ""
+	if strings.HasPrefix(value, "`") || strings.HasSuffix(value, "`") {
+		padding = " "
+	}
+	return fence + padding + value + padding + fence
 }
 
 func generateRootSection(rootName string, schema Schema, spec OpenAPISpec, schemaToFile map[string]string) string {
@@ -566,12 +609,12 @@ func generateRootSection(rootName string, schema Schema, spec OpenAPISpec, schem
 		// Output all fields in order (required first, then optional)
 		// Sort by required status, then by name
 		type fieldInfo struct {
-			name      string
-			schema    Schema
-			required  bool
+			name     string
+			schema   Schema
+			required bool
 		}
 		var fields []fieldInfo
-		
+
 		for _, propName := range propNames {
 			isRequired := false
 			for _, req := range schema.Required {
@@ -588,12 +631,12 @@ func generateRootSection(rootName string, schema Schema, spec OpenAPISpec, schem
 				continue
 			}
 			fields = append(fields, fieldInfo{
-				name: propName,
-				schema: prop,
+				name:     propName,
+				schema:   prop,
 				required: isRequired,
 			})
 		}
-		
+
 		// Sort: required first, then by name
 		sort.Slice(fields, func(i, j int) bool {
 			if fields[i].required != fields[j].required {

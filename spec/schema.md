@@ -279,6 +279,8 @@ An object describing security-related artifacts, champions, and tooling for the 
 
 Indicates the repository’s current [Repo Status](https://repostatus.org).
 
+Allowed values: `active`, `abandoned`, `concept`, `inactive`, `moved`, `suspended`, `unsupported`, `WIP`.
+
 `url` **[URL](#url)** _Required_
 
 The main URL for this repository.
@@ -355,13 +357,15 @@ The name of the tool.
 
 Where to find the tool's scan results, grouped by how they are run (ad hoc, CI, or release).
 
-`rulesets` **string** _Required_
+`rulesets` **array[string]** _Required_
 
 The set of rules or configurations applied by the tool. If customization is not enabled, the only value here should be "default".
 
 `type` **string** _Required_
 
 The general category or type of the tool.
+
+Allowed values: `fuzzing`, `container`, `secret`, `SCA`, `SAST`, `other`.
 
 `comment` **string**
 
