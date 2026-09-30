@@ -53,6 +53,12 @@ testeditor: check-schema-fallback
 	@echo "  >  Testing Security Insights editor ..."
 	@npm test
 
+check-llm-prompt:
+	@node scripts/check-llm-prompt.js
+
+test-llm-prompt: check-llm-prompt
+	@node --test tests/prompt/*.test.js
+
 gendocs: genopenapi
 	@echo "  >  Generating markdown from OpenAPI ..."
 	@cd cmd/openapi2md && go run . -input ../../openapi.yaml -output ../../spec -roots SecurityInsights
@@ -181,4 +187,4 @@ stop:
 		echo "  >  No process listening on port 4000."; \
 	fi
 
-.PHONY: lintcue lintyml cuegen genopenapi genindex generate-schema-fallback check-schema-fallback testeditor gendocs genpdf start run stop
+.PHONY: lintcue lintyml cuegen genopenapi genindex generate-schema-fallback check-schema-fallback testeditor check-llm-prompt test-llm-prompt gendocs genpdf start run stop
