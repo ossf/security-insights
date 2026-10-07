@@ -50,7 +50,7 @@ Follow the [Get Started guide](get-started.md). It walks through both single-rep
 
 ### Where should I place the security-insights.yml file?
 
-Place it at the repository root as `security-insights.yml`, or in your code host's config directory (`.github/` or `.gitlab/`). Tools look in these locations automatically.
+Place it at the repository root as `security-insights.yaml` or `security-insights.yml`, or in your code host's config directory (`.github/` or `.gitlab/`). Either extension works. Keep only one file. Tools look in these locations automatically.
 
 ### How do I validate my security-insights.yml file?
 
