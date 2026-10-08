@@ -185,10 +185,10 @@ import (
 	"pgp-key"?: string @go(PGPKey,type=*URL)
 
 	// A list of issues or components that are covered by the vulnerability reporting process.
-	"in-scope"?: [...string] @go(InScope,type=*URL)
+	"in-scope"?: [...string] @go(InScope)
 
 	// A list of issues or components not covered by the vulnerability reporting process.
-	"out-of-scope"?: [...string] @go(OutOfScope,type=*URL)
+	"out-of-scope"?: [...string] @go(OutOfScope)
 }
 
 // Project describes the overall project, including basic info, documentation links, repositories, vulnerability reporting, and security details.
