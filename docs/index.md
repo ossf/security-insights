@@ -29,7 +29,7 @@ Follow the [Get Started guide](https://security-insights.openssf.org/get-started
 
 ### For Consumers
 
-Look for `security-insights.yml` at the repository root or in the source-forge directory (`.github/`, `.gitlab/`, etc.).
+Look for `security-insights.yaml` or `security-insights.yml` at the repository root or in the source-forge directory (`.github/`, `.gitlab/`, etc.). Accept either extension. If both exist in the same location, report an error instead of choosing one.
 
 Treat the contents as a snapshot. It describes the commit or release it ships with, not necessarily the project's current state.
 

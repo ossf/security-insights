@@ -29,9 +29,9 @@ When in doubt, start with the single-repository path. You can move to a parent/c
 
 ## Single-repository path
 
-1. Copy [`example-minimum.yml`][min] into your repository as `security-insights.yml`. Recommended locations, in priority order:
-    - `security-insights.yml` at the repository root, or
-    - `.github/security-insights.yml` (or `.gitlab/...`, etc.) for source-forge integrations.
+1. Copy [`example-minimum.yml`][min] into your repository as `security-insights.yaml` or `security-insights.yml`. Either extension works. Keep only one file. Recommended locations, in priority order:
+    - the repository root, or
+    - `.github/` (or `.gitlab/`, etc.) for source-forge integrations.
 
 2. Replace the placeholder values with your project's actual data. Every field in the minimum example is meaningful; some sub-fields like `email` and `social` on contacts are optional and can be dropped if they don't apply.
 
