@@ -85,7 +85,41 @@ for (const name of ['SPEC_VERSION', 'SCHEMA_URL', 'SCHEMA_SHA256']) {
       }), new RegExp(`well-formed ${name}`));
     });
   }
+  const conflicting = {
+    SPEC_VERSION: 'v99.0.0',
+    SCHEMA_URL: `https://raw.githubusercontent.com/ossf/security-insights/${'f'.repeat(40)}/spec/schema.cue`,
+    SCHEMA_SHA256: 'f'.repeat(64)
+  }[name];
+  for (const [kind, assignment] of [
+    ['identical', line],
+    ['conflicting', `${name}: ${conflicting}`],
+    ['lowercase', `${name.toLowerCase()}: ${conflicting}`],
+    ['quoted key', `"${name}": ${conflicting}`],
+    ['backtick key', `\`${name}\`: ${conflicting}`],
+    ['bold key', `**${name}**: ${conflicting}`],
+    ['wrong separator', `${name}=${conflicting}`],
+    ['spaced separator', `${name} : ${conflicting}`],
+    ['empty value', `${name}:`],
+    ['multiple', `${name}: ${conflicting}; ${line}`]
+  ]) {
+    test(`rejects ${kind} inline ${name} assignment`, () => {
+      assert.throws(() => checkPrompt({
+        ...inputs,
+        document: document.replace('REPOSITORY: <', `Alternatively, ${assignment}\nREPOSITORY: <`)
+      }), new RegExp(`well-formed ${name}`));
+    });
+  }
 }
+
+test('ordinary inline metadata references are not additional declarations', () => {
+  assert.doesNotThrow(() => checkPrompt({
+    ...inputs,
+    document: document.replace(
+      'REPOSITORY: <',
+      'Read SPEC_VERSION, fetch SCHEMA_URL, and compare SCHEMA_SHA256.\nREPOSITORY: <'
+    )
+  }));
+});
 
 for (const [name, badValue] of [
   ['SPEC_VERSION', 'v2.2'],
@@ -126,6 +160,83 @@ test('HTML comments cannot supply the copyable prompt', () => {
   assert.throws(() => checkPrompt({ ...inputs, document: commented }), /Missing, duplicate/);
   assert.throws(() => checkPrompt({ ...inputs, document: `<!--\n${document}` }), /unclosed/);
   assert.doesNotThrow(() => checkPrompt({ ...inputs, document: commented + document }));
+});
+
+for (const [name, prose] of [
+  ['prefix before a comment', 'Visible prose <!-- hidden -->'],
+  ['suffix after a comment', '<!-- hidden --> Visible prose'],
+  ['text between comments', '<!-- first --> Visible prose <!-- second -->'],
+  ['prefix before a multiline comment', 'Visible prose <!-- hidden\nstill hidden -->'],
+  ['suffix after a multiline comment', '<!-- hidden\nstill hidden --> Visible prose'],
+  ['text between multiline comments', '<!-- first\nend --> Visible prose <!-- second\nend -->']
+]) {
+  test(`rejects visible ${name} in the copyable section`, () => {
+    assert.throws(() => checkPrompt({
+      ...inputs,
+      document: document.replace('## Copy-paste prompt\n', `## Copy-paste prompt\n${prose}\n`)
+    }), /only its fenced text block/);
+  });
+}
+
+test('comment-only lines around the prompt are ignored', () => {
+  const comments = '<!-- first --> <!-- second\nstill hidden -->\n';
+  assert.doesNotThrow(() => checkPrompt({
+    ...inputs,
+    document: document.replace(block, `${comments}${block}\n${comments}`)
+  }));
+});
+
+test('an unclosed comment after a valid prompt is rejected', () => {
+  assert.throws(() => checkPrompt({
+    ...inputs,
+    document: `${document}\n<!-- unclosed\n`
+  }), /unclosed/);
+});
+
+test('HTML comment delimiters inside the fenced prompt remain literal', () => {
+  assert.doesNotThrow(() => checkPrompt({
+    ...inputs,
+    document: document.replace('REPOSITORY: <', '<!-- literal unmatched opener\nREPOSITORY: <')
+  }));
+  assert.throws(() => checkPrompt({
+    ...inputs,
+    document: document.replace('REPOSITORY: <', `<!-- ${metadata} -->\nREPOSITORY: <`)
+  }), /well-formed SPEC_VERSION/);
+  const example = '```text\n<!-- literal unmatched opener\n```\n';
+  assert.doesNotThrow(() => checkPrompt({ ...inputs, document: example + document }));
+});
+
+test('comments cannot assemble the required heading or opening fence', () => {
+  for (const [original, replacement] of [
+    ['## Copy-paste prompt', '## Copy-paste <!-- hidden -->prompt'],
+    ['```text', '``<!-- hidden -->`text']
+  ]) {
+    assert.throws(() => checkPrompt({
+      ...inputs,
+      document: document.replace(original, replacement)
+    }), /Missing, duplicate|exactly one|only its fenced|heading must be exactly/);
+  }
+});
+
+for (const heading of [
+  '## Copy-paste prompt <!-- hidden -->',
+  '## Copy-paste prompt<!-- hidden -->',
+  '## Copy-paste <!-- hidden -->prompt',
+  '<!-- hidden -->## Copy-paste prompt',
+  '<!-- hidden\n-->## Copy-paste prompt'
+]) {
+  test(`rejects a duplicate heading obscured by comments: ${JSON.stringify(heading)}`, () => {
+    assert.throws(() => checkPrompt({
+      ...inputs,
+      document: `${document}\n${heading}\n${block}\n`
+    }), /heading must be exactly|duplicate/);
+  });
+}
+
+test('a fence closes only with the same marker character', () => {
+  const example = `\`\`\`\`markdown\n~~~~\n## Copy-paste prompt\n${block}\n\`\`\`\`\n`;
+  assert.throws(() => checkPrompt({ ...inputs, document: example }), /Missing, duplicate/);
+  assert.doesNotThrow(() => checkPrompt({ ...inputs, document: example + document }));
 });
 
 test('Make entrypoint fails closed with actionable errors and never edits inputs', t => {

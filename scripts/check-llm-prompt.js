@@ -15,7 +15,7 @@ function extractPrompt(document) {
 
   // Ignore examples and HTML comments rather than accepting a hidden prompt.
   for (const line of document.replace(/\r\n/g, '\n').split('\n')) {
-    const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
+    let marker = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line);
     if (fence) {
       if (marker && marker[1][0] === fence[0]
           && marker[1].length >= fence.length && marker[2].trim() === '') {
@@ -29,17 +29,28 @@ function extractPrompt(document) {
       }
       continue;
     }
-    const wasInComment = inComment;
-    for (const delimiter of line.matchAll(/<!--|-->/g)) {
-      if (delimiter[0] === '<!--') inComment = true;
-      else inComment = false;
+    let visibleLine = '';
+    let offset = 0;
+    while (offset < line.length) {
+      const delimiter = inComment ? '-->' : '<!--';
+      const index = line.indexOf(delimiter, offset);
+      if (index === -1) {
+        if (!inComment) visibleLine += line.slice(offset);
+        break;
+      }
+      if (!inComment) visibleLine += line.slice(offset, index);
+      offset = index + delimiter.length;
+      inComment = !inComment;
     }
-    if (wasInComment || line.includes('<!--')) continue;
-    if (/^##(?: |$)/.test(line)) {
+    if (visibleLine.trimEnd() === '## Copy-paste prompt' && line !== '## Copy-paste prompt') {
+      throw new Error('The copyable prompt heading must be exactly ## Copy-paste prompt.');
+    }
+    if (/^##(?: |$)/.test(visibleLine)) {
       inSection = line === '## Copy-paste prompt';
       if (inSection) headingCount += 1;
       continue;
     }
+    marker = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(visibleLine);
     if (marker) {
       fence = marker[1];
       copying = inSection;
@@ -49,7 +60,7 @@ function extractPrompt(document) {
         }
         prompt = [];
       }
-    } else if (inSection && line.trim() !== '') {
+    } else if (inSection && visibleLine.trim() !== '') {
       throw new Error('Copy-paste prompt must contain only its fenced text block.');
     }
   }
@@ -63,7 +74,8 @@ function declaration(prompt, name, format) {
   const lines = prompt.split('\n').filter(line =>
     new RegExp(`^\\W*${name}\\b`, 'i').test(line)
   );
-  const match = lines.length === 1
+  const assignments = prompt.match(new RegExp(`\\b${name}\\b["'\`*]*\\s*[:=]`, 'gi')) || [];
+  const match = lines.length === 1 && assignments.length === 1
     ? new RegExp(`^${name}: (${format})$`).exec(lines[0])
     : null;
   if (!match) {

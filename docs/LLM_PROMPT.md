@@ -199,8 +199,10 @@ make test-llm-prompt
 
 The second command also runs the guard before its regression tests. Neither
 command needs npm packages, network access, API keys, or model calls.
-The unfiltered PR/push workflow runs both, including for changes to the guard,
-tests, and workflow itself.
+The workflow runs both on pull requests, manual dispatch, and pushes to `main`,
+without path filters, including for changes to the guard, tests, and workflow
+itself. Feature-branch pushes do not also trigger a push run; pushes to `main`
+in a fork remain eligible.
 
 The guard reads the fenced `text` block in the **Copy-paste prompt** section,
 not metadata elsewhere on the page. It requires unique, well-formed declarations
@@ -218,6 +220,38 @@ version, schema URL, and checksum together. Verify that the immutable URL return
 exactly the reviewed local schema bytes before updating the checksum; do not
 just bump metadata to make CI green. Preserve the copyable section format and
 rerun `make test-llm-prompt`. There is no automatic pin-update command.
+
+### Updating the prompt alongside a schema change
+
+Follow the [schema-change governance process](GOVERNANCE.md#security-insights-enhancement-proposals)
+first. Use two commits in the same schema-change PR so the prompt can reference
+schema bytes that already exist at an immutable commit:
+
+1. Create and push commit **A** containing the reviewed `spec/schema.cue` change
+   and any appropriate `VERSION` change. The guard may fail at this intermediate
+   commit because the prompt has not yet been updated; do not merge it alone.
+2. In a later commit **B** in the same PR, review and update the prompt's field
+   shapes and instructions. Set `SPEC_VERSION` to the exact `VERSION` value,
+   `SCHEMA_URL` to the official raw URL using A's full 40-character commit SHA,
+   and `SCHEMA_SHA256` to the checksum of the reviewed local schema. Fetch that
+   exact URL and verify its bytes match the local schema before committing B.
+   If the schema changes again, repeat this sequence with the new schema commit.
+3. Before merging, verify the URL again and run `make test-llm-prompt` on the
+   final PR revision. Both the URL bytes and the local guard must agree. Do not
+   merge with an inaccessible URL, mismatched checksum, or stale version, and
+   do not bypass the guard to allow a temporary mismatch.
+4. For squash merges, the repository's current merge policy, make a follow-up
+   PR that repins `SCHEMA_URL` to the resulting commit on `main`. Verify that
+   URL's bytes too. Keep the checksum if the bytes are unchanged; otherwise
+   review the schema and instructions again before changing it.
+
+The official raw endpoint can serve commits from an unmerged fork PR, but
+verify each proposed URL rather than assuming availability. Retain the source
+branch containing A until the follow-up is merged and coordinate the repin with
+maintainers. This is not a guarantee of indefinite availability of a PR commit
+after squashing or deleting its branch; nor does squashing necessarily make the
+URL immediately inaccessible. The follow-up anchors the pin in `main` history.
+Do not replace the full commit SHA with a moving branch or tag.
 
 This is a **drift alarm, not a correctness guarantee**. The offline check does not
 fetch the pinned URL, establish that its commit exists or contains the claimed
