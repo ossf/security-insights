@@ -22,8 +22,8 @@ rather than invent required facts.
 
 ```text
 SPEC_VERSION: v2.2.0
-SCHEMA_URL: https://raw.githubusercontent.com/ossf/security-insights/801ec4788a5846f10bb267bda96cb157e41921c9/spec/schema.cue
-SCHEMA_SHA256: b1893a4ab88735e7ae924b8ab0823403bd6147132c26adc74f04713de7079d3a
+SCHEMA_URL: https://raw.githubusercontent.com/ossf/security-insights/8672cdccaab8c50f669076776c7ad7631bb6dea7/spec/schema.cue
+SCHEMA_SHA256: 5f3183023e69fc62c23e9bec41b9da51bf59b1032164181e573117e472668933
 
 REPOSITORY: <GitHub repository URL or local repository path>
 CANONICAL_FILE_URL: <intended raw URL of the published Insights file, or unknown>
