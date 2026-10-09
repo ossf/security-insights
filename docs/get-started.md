@@ -41,6 +41,10 @@ When in doubt, start with the single-repository path. You can move to a parent/c
 
 For a complete listing of optional fields — release attestations, security tools, third-party assessments, and more — see [`example-full.yml`][full] and the [schema reference](schema.md).
 
+For an evidence-based starting point, the optional [AI drafting prompt](LLM_PROMPT.md)
+asks an assistant to inspect your repository and produce a standalone **DRAFT**.
+It does not replace maintainer review or final schema validation.
+
   </div>
   <div class="tab-panel" id="panel-multi" role="tabpanel" markdown="1">
 
