@@ -688,7 +688,7 @@ const CueParser = (function() {
         };
       }
 
-      // Fixed or non-empty variadic array: [Type] or [Type, ...].
+      // Fixed or non-empty variadic array: [Type], [Type, ...] or [Type, ...Type].
       if (
         this.check(TokenType.TYPE_DEF)
         || this.check(TokenType.KEYWORD_STRING)
@@ -699,6 +699,13 @@ const CueParser = (function() {
         let hasEllipsis = false;
         if (this.match(TokenType.COMMA)) {
           hasEllipsis = !!this.match(TokenType.ELLIPSIS);
+          if (hasEllipsis && !this.check(TokenType.RBRACKET)) {
+            // The editor models one item type per list, so a different tail type is not representable.
+            const tailType = this.parseArrayItemType();
+            if (JSON.stringify(tailType) !== JSON.stringify(itemType)) {
+              throw new Error('Unsupported array: the type after "..." differs from the first element type');
+            }
+          }
         }
         this.expect(TokenType.RBRACKET);
         return {
