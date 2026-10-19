@@ -14,8 +14,10 @@ const yaml = require('js-yaml');
 const root = path.resolve(__dirname, '..', '..');
 const example = yaml.load(fs.readFileSync(path.join(root, 'examples', 'example-full.yml'), 'utf8'));
 
-// Each field: where it lives in example-full.yml, and an element that is a
-// well-formed object of the wrong shape (a typed value that does not match).
+// Each field: where it lives in example-full.yml, and an element that fails
+// validation. Most use a typed value that does not match (a bad email or url).
+// `#Link` has only string fields, so a bad value cannot be built for
+// distribution-points; its element omits the required `comment` instead.
 const fields = [
   {
     name: 'project.administrators',
@@ -91,15 +93,15 @@ for (const { name, at, invalid } of fields) {
     assert.notEqual(vet(withList(at, [first, 123])).status, 0);
   });
 
-  test(`${name}: a second element with an invalid value is rejected`, () => {
+  test(`${name}: a second element that fails validation is rejected`, () => {
     assert.notEqual(vet(withList(at, [first, invalid])).status, 0);
   });
 
-  test(`${name}: an invalid element after several valid ones is rejected`, () => {
+  test(`${name}: a failing element after several valid ones is rejected`, () => {
     assert.notEqual(vet(withList(at, [first, structuredClone(first), invalid])).status, 0);
   });
 
-  test(`${name}: an invalid first element is rejected`, () => {
+  test(`${name}: a failing first element is rejected`, () => {
     assert.notEqual(vet(withList(at, [invalid, first])).status, 0);
   });
 }
