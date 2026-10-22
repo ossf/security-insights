@@ -210,10 +210,10 @@ import (
 	steward?: #Link @go(Steward,type=*Link)
 
 	// A list of 1 or more individuals who have administrative access to the project's resources.
-	administrators: [#Contact, ...] @go(,type=[]Contact)
+	administrators: [#Contact, ...#Contact] @go(,type=[]Contact)
 
 	// A list of 1 or more repositories that are part of this project, including the repository this file is published in.
-	repositories: [#ProjectRepository, ...] @go(Repositories,type=[]ProjectRepository)
+	repositories: [#ProjectRepository, ...#ProjectRepository] @go(Repositories,type=[]ProjectRepository)
 
 	// An object describing how security vulnerabilities can be reported and how they are handled by the project.
 	"vulnerability-reporting": #VulnerabilityReporting @go(VulnerabilityReporting)
@@ -307,7 +307,7 @@ import (
 	// Indicates if the repository uses an automated release pipeline.
 	"automated-pipeline": bool @go(AutomatedPipeline)
 	// A list of 1 or more links describing where the repository’s releases are distributed. This may be the VCS releases page, a package manager, or other distribution points.
-	"distribution-points": [#Link, ...] @go(DistributionPoints,type=[]Link)
+	"distribution-points": [#Link, ...#Link] @go(DistributionPoints,type=[]Link)
 	// A URL to the repository’s release changelog. The URL value should include placeholders such as `{version}` if relevant.
 	changelog?: #URL @go(Changelog,type=*URL)
 	// Describes the license details specifically for releases. This should be used when the release license differs from the repository license.
@@ -338,7 +338,7 @@ import (
 	"no-third-party-packages"?: bool @go(NoThirdPartyPackages)
 
 	// A list of 1 or more core team members for this repository, such as maintainers or approvers.
-	"core-team": [#Contact, ...] @go(CoreTeam,type=[]Contact)
+	"core-team": [#Contact, ...#Contact] @go(CoreTeam,type=[]Contact)
 
 	// The license information for this repository.
 	license: #License

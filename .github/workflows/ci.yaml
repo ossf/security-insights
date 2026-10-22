@@ -75,3 +75,6 @@ jobs:
 
       - name: Validate example files against schema
         run: make lintyml
+
+      - name: Test list constraints in the schema
+        run: make testschema
