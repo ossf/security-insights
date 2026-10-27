@@ -331,7 +331,15 @@ SecurityPosture describes the security posture of the repository, including asse
 
 `assessments` **object** _Required_
 
-An object describing security assessments for the repository.
+An object describing security assessments for the repository.  Contains the following elements:
+
+ * `self` **[Assessment](#assessment)** _Required_
+
+   Results of the contributor team's assessment of software produced by this repository.
+
+ * `third-party` **array[[Assessment](#assessment)]**
+
+   Results of third-party assessments of software produced by this repository.
 
 `champions` **array[[Contact](#contact)]**
 
@@ -490,6 +498,7 @@ URL is a web URL beginning with http:// or https://
 ---
 
 
+[Assessment]: #assessment
 [Attestation]: #attestation
 [Contact]: #contact
 [Date]: #date

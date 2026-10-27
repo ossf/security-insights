@@ -1,11 +1,13 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -495,13 +497,28 @@ func formatFieldInline(fieldName string, fieldSchema Schema, spec OpenAPISpec, p
 
 	// Description
 	description := fieldSchema.Description
-	if fieldSchema.Ref != "" {
-		refSchema, err := resolveSchemaRef(fieldSchema.Ref, spec)
-		if err == nil {
-			if description == "" {
-				description = refSchema.Description
+
+	// If a field is an object, it may have nested properties.  We only expand one level,
+	// because (as of Oct 2026) the only instance of this is `assessments` in SecurityPosture.
+	if fieldSchema.Properties != nil {
+		elements := []string{}
+		for propName, def := range fieldSchema.Properties {
+			// We need to round-trip the any field via YAML to convert it to a Schema
+			propBytes, _ := yaml.Marshal(def)
+			var prop Schema
+			if err := yaml.Unmarshal(propBytes, &prop); err != nil {
+				continue
 			}
+			formatted := fmt.Sprintf(" * `%s` **%s**", propName, formatFieldType(prop, spec, schemaToFile))
+			if slices.Contains(fieldSchema.Required, propName) {
+				formatted += " _Required_"
+			}
+			if prop.Description != "" {
+				formatted += "\n\n   " + prop.Description
+			}
+			elements = append(elements, formatted)
 		}
+		description += "  Contains the following elements:\n\n" + strings.Join(elements, "\n\n")
 	}
 
 	return fieldLine, description
@@ -616,13 +633,7 @@ func generateRootSection(rootName string, schema Schema, spec OpenAPISpec, schem
 		var fields []fieldInfo
 
 		for _, propName := range propNames {
-			isRequired := false
-			for _, req := range schema.Required {
-				if req == propName {
-					isRequired = true
-					break
-				}
-			}
+			isRequired := slices.Contains(schema.Required, propName)
 
 			propData := schema.Properties[propName]
 			propBytes, _ := yaml.Marshal(propData)
@@ -638,11 +649,14 @@ func generateRootSection(rootName string, schema Schema, spec OpenAPISpec, schem
 		}
 
 		// Sort: required first, then by name
-		sort.Slice(fields, func(i, j int) bool {
-			if fields[i].required != fields[j].required {
-				return fields[i].required // required fields come first
+		slices.SortFunc(fields, func(a fieldInfo, b fieldInfo) int {
+			if a.required && !b.required {
+				return -1
 			}
-			return fields[i].name < fields[j].name
+			if !a.required && b.required {
+				return 1
+			}
+			return cmp.Compare(a.name, b.name)
 		})
 
 		// Output all fields
