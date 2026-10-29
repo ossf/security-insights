@@ -49,6 +49,10 @@ check-schema-fallback:
 	@echo "  >  Checking editor fallback schema ..."
 	@node scripts/generate-schema-fallback.js --check
 
+testschema:
+	@echo "  >  Testing list constraints in the CUE schema ..."
+	@node --test tests/schema/*.test.js
+
 testeditor: check-schema-fallback
 	@echo "  >  Testing Security Insights editor ..."
 	@npm test
@@ -187,4 +191,4 @@ stop:
 		echo "  >  No process listening on port 4000."; \
 	fi
 
-.PHONY: lintcue lintyml cuegen genopenapi genindex generate-schema-fallback check-schema-fallback testeditor check-llm-prompt test-llm-prompt gendocs genpdf start run stop
+.PHONY: lintcue lintyml cuegen genopenapi genindex generate-schema-fallback check-schema-fallback testeditor testschema check-llm-prompt test-llm-prompt gendocs genpdf start run stop

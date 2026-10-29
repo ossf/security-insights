@@ -43,6 +43,7 @@ repository:
       primary:     true
     - name:        Jason Meridth
       affiliation: Chainguard
+      primary:     false
   license:
     url: https://github.com/ossf/security-insights/blob/main/LICENSE
     expression: MIT AND Community Specification License 1.0

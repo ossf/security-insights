@@ -73,6 +73,7 @@ test('parser distinguishes fixed and variadic array cardinality', () => {
 #Item: string
 #Fixed: [#Item]
 #OneOrMore: [#Item, ...]
+#OneOrMoreTyped: [#Item, ...#Item]
 #ZeroOrMore: [...#Item]
 `);
   assert.deepEqual(
@@ -84,6 +85,13 @@ test('parser distinguishes fixed and variadic array cardinality', () => {
   );
   assert.equal(parsed.getType('#OneOrMore').minItems, 1);
   assert.equal(parsed.getType('#OneOrMore').maxItems, undefined);
+  assert.equal(parsed.getType('#OneOrMoreTyped').minItems, 1);
+  assert.equal(parsed.getType('#OneOrMoreTyped').maxItems, undefined);
+  assert.deepEqual(parsed.getType('#OneOrMoreTyped').itemType, parsed.getType('#OneOrMore').itemType);
+  assert.throws(
+    () => CueParser.parse('#A: string\n#B: string\n#Mixed: [#A, ...#B]\n'),
+    /type after "\.\.\." differs/
+  );
   assert.equal(parsed.getType('#ZeroOrMore').minItems, 0);
 
   const rulesets = schema.getType('#SecurityTool').fields.rulesets;

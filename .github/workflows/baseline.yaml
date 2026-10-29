@@ -19,7 +19,7 @@ jobs:
       security-events: write # Required for SARIF upload
 
     steps:
-      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+      - uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: audit
 
@@ -40,7 +40,7 @@ jobs:
           identity: baseline-scanner
 
       - name: Run Baseline Action
-        uses: revanite-io/osps-baseline-action@1af7ff8b44af83f120b20cc5f63b877286849257 # v1.5.2
+        uses: revanite-io/osps-baseline-action@d0d850b592f1788b2631f1dfdf84d80ea8c720f5 # v1.5.3
         with:
           owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
