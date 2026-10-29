@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -438,26 +439,6 @@ func isAlias(schema Schema) bool {
 	return schema.Properties == nil
 }
 
-func resolveSchemaRef(ref string, spec OpenAPISpec) (*Schema, error) {
-	if !strings.HasPrefix(ref, "#/components/schemas/") {
-		return nil, fmt.Errorf("invalid ref format: %s", ref)
-	}
-
-	schemaName := strings.TrimPrefix(ref, "#/components/schemas/")
-	schemaData, exists := spec.Components.Schemas[schemaName]
-	if !exists {
-		return nil, fmt.Errorf("schema not found: %s", schemaName)
-	}
-
-	schemaBytes, _ := yaml.Marshal(schemaData)
-	var schema Schema
-	if err := yaml.Unmarshal(schemaBytes, &schema); err != nil {
-		return nil, fmt.Errorf("failed to parse schema %s: %v", schemaName, err)
-	}
-
-	return &schema, nil
-}
-
 // schemaRefToDisplay returns the display string for a $ref: either a markdown link
 // (same-page or cross-file) or the schema name. It registers only the schema name
 // with addMappedHeader so footer refs point at actual headings.
@@ -502,7 +483,8 @@ func formatFieldInline(fieldName string, fieldSchema Schema, spec OpenAPISpec, p
 	// because (as of Oct 2026) the only instance of this is `assessments` in SecurityPosture.
 	if fieldSchema.Properties != nil {
 		elements := []string{}
-		for propName, def := range fieldSchema.Properties {
+		for _, propName := range slices.Sorted(maps.Keys(fieldSchema.Properties)) {
+			def := fieldSchema.Properties[propName]
 			// We need to round-trip the any field via YAML to convert it to a Schema
 			propBytes, _ := yaml.Marshal(def)
 			var prop Schema
