@@ -36,9 +36,28 @@ components:
             - SCA
             - SAST
             - other
+        nested:
+          type: object
+          description: A nested object with no top-level type
+          properties:
+            necessary:
+              description: This is required
+              $ref: "#/components/schemas/OtherType"
+            optional:
+              type: array
+              description: An optional thing
+              items:
+                $ref: "#/components/schemas/OtherType"
+          required:
+            - necessary
       required:
         - rulesets
         - type
+    OtherType:
+      type: object
+      properties:
+        text:
+          type: string
 `
 	if err := os.WriteFile(inputPath, []byte(input), 0o600); err != nil {
 		t.Fatalf("write OpenAPI fixture: %v", err)
@@ -59,6 +78,13 @@ components:
 	wantAllowed := "Allowed values: `fuzzing`, `container`, `secret`, `SCA`, `SAST`, `other`."
 	if !strings.Contains(got, wantAllowed) {
 		t.Fatalf("generated Markdown does not preserve enum values; want %q:\n%s", wantAllowed, got)
+	}
+
+	wantNested := "A nested object with no top-level type  Contains the following elements:\n\n" +
+		" * `necessary` **[OtherType](#othertype)** _Required_\n\n   This is required\n\n" +
+		" * `optional` **array[[OtherType](#othertype)]**\n\n   An optional thing"
+	if !strings.Contains(got, wantNested) {
+		t.Fatalf("generated Markdown does not contain nested content, want %q:\n%s", wantNested, got)
 	}
 }
 
