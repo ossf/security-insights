@@ -267,7 +267,7 @@ import (
 	integration: #SecurityToolIntegration @go(Integration)
 
 	// Where to find the tool's scan results, grouped by how they are run (ad hoc, CI, or release).
-	results: #SecurityToolResults @go(Results)
+	results!: #SecurityToolResults @go(Results)
 }
 
 // SecurityPosture describes the security posture of the repository, including assessments, champions, and tools.
