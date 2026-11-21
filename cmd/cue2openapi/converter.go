@@ -236,7 +236,7 @@ func parseDefinitionField(field *ast.Field, spec *OpenAPISpec) {
 			if ue.Op == token.MAT || ue.Op == token.NMAT {
 				// Extract the pattern from the BasicLit
 				if lit, ok := ue.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-					pattern := strings.Trim(lit.Value, "\"")
+					pattern := regexPattern(lit)
 					spec.Components.Schemas[typeName] = &SchemaInfo{
 						Type:        "string",
 						Description: description,
@@ -251,9 +251,9 @@ func parseDefinitionField(field *ast.Field, spec *OpenAPISpec) {
 			if be.Op == token.MAT || be.Op == token.NMAT {
 				var pattern string
 				if lit, ok := be.Y.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-					pattern = strings.Trim(lit.Value, "\"")
+					pattern = regexPattern(lit)
 				} else if lit, ok := be.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-					pattern = strings.Trim(lit.Value, "\"")
+					pattern = regexPattern(lit)
 				}
 				if pattern != "" {
 					spec.Components.Schemas[typeName] = &SchemaInfo{
@@ -388,7 +388,7 @@ func convertBinaryExprToSchema(expr *ast.BinaryExpr, spec *OpenAPISpec, descript
 	if expr.Op == token.MAT || expr.Op == token.NMAT {
 		// Check right side first (most common case: =~"pattern")
 		if lit, ok := expr.Y.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-			pattern := strings.Trim(lit.Value, "\"")
+			pattern := regexPattern(lit)
 			return &SchemaInfo{
 				Type:        "string",
 				Description: description,
@@ -397,7 +397,7 @@ func convertBinaryExprToSchema(expr *ast.BinaryExpr, spec *OpenAPISpec, descript
 		}
 		// Check left side (less common: "pattern"=~)
 		if lit, ok := expr.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-			pattern := strings.Trim(lit.Value, "\"")
+			pattern := regexPattern(lit)
 			return &SchemaInfo{
 				Type:        "string",
 				Description: description,
@@ -583,7 +583,7 @@ func convertTypeAlias(expr ast.Expr, spec *OpenAPISpec, description string) *Sch
 		if x.Op == token.MAT || x.Op == token.NMAT {
 			// Check if pattern is on the right side
 			if lit, ok := x.Y.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-				pattern := strings.Trim(lit.Value, "\"")
+				pattern := regexPattern(lit)
 				return &SchemaInfo{
 					Type:        "string",
 					Description: description,
@@ -592,7 +592,7 @@ func convertTypeAlias(expr ast.Expr, spec *OpenAPISpec, description string) *Sch
 			}
 			// Also check left side in case AST structure is reversed
 			if lit, ok := x.X.(*ast.BasicLit); ok && lit.Kind == token.STRING {
-				pattern := strings.Trim(lit.Value, "\"")
+				pattern := regexPattern(lit)
 				return &SchemaInfo{
 					Type:        "string",
 					Description: description,
@@ -646,4 +646,15 @@ func writeOpenAPISpec(spec *OpenAPISpec, outputPath string) error {
 	}
 
 	return os.WriteFile(outputPath, data, 0644)
+}
+
+// regexPattern returns the regular expression held by a CUE string literal.
+// CUE string literals use escape sequences, so the literal has to be unquoted:
+// the CUE source "\\." is the regex \. (a literal dot), not \\. (a literal
+// backslash followed by any character).
+func regexPattern(lit *ast.BasicLit) string {
+	if pattern, err := literal.Unquote(lit.Value); err == nil {
+		return pattern
+	}
+	return strings.Trim(lit.Value, "\"")
 }
