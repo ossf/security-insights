@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"testing"
 
 	"cuelang.org/go/cue/parser"
@@ -186,5 +187,56 @@ func TestUnionProjectionIsTypeSafe(t *testing.T) {
 				t.Fatalf("items = %#v; want type %q", got.Items, test.wantItemsType)
 			}
 		})
+	}
+}
+
+func TestPatternsAreUnquoted(t *testing.T) {
+	t.Parallel()
+
+	outputPath := filepath.Join(t.TempDir(), "openapi.yaml")
+	if err := convertCUEToOpenAPI("../../spec", outputPath, ConvertOpts{Version: "test"}); err != nil {
+		t.Fatalf("convert CUE to OpenAPI: %v", err)
+	}
+
+	data, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatalf("read generated OpenAPI: %v", err)
+	}
+	var document struct {
+		Components struct {
+			Schemas map[string]struct {
+				Pattern string `yaml:"pattern"`
+			} `yaml:"schemas"`
+		} `yaml:"components"`
+	}
+	if err := yaml.Unmarshal(data, &document); err != nil {
+		t.Fatalf("parse generated OpenAPI: %v", err)
+	}
+
+	tests := []struct {
+		schema  string
+		valid   []string
+		invalid []string
+	}{
+		{"Email", []string{"security@example.com"}, []string{`security@example\.com`, "security@example"}},
+		{"URL", []string{"https://example.com/security"}, []string{"https://example.com/a b", "ftp://example.com"}},
+		{"SchemaVersion", []string{"2.2.0"}, []string{`2\.2\.0`, "2.2"}},
+	}
+	for _, tt := range tests {
+		pattern := document.Components.Schemas[tt.schema].Pattern
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			t.Fatalf("%s pattern %q does not compile: %v", tt.schema, pattern, err)
+		}
+		for _, v := range tt.valid {
+			if !re.MatchString(v) {
+				t.Errorf("%s pattern %q rejects %q", tt.schema, pattern, v)
+			}
+		}
+		for _, v := range tt.invalid {
+			if re.MatchString(v) {
+				t.Errorf("%s pattern %q accepts %q", tt.schema, pattern, v)
+			}
+		}
 	}
 }
