@@ -55,3 +55,30 @@ test('repository.security.tools[].results: an empty object is accepted', () => {
   const result = vet(withToolResults({}));
   assert.equal(result.status, 0, result.stderr);
 });
+
+const childExample = yaml.load(fs.readFileSync(
+  path.join(root, 'examples', 'example-multi-repository-project-reuse.yml'), 'utf8'));
+
+test('project: omitting it without header.project-si-source is rejected', () => {
+  const document = structuredClone(example);
+  delete document.project;
+  const result = vet(document);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /project: field is required but not present/);
+});
+
+test('project: a parent file with only header and project is accepted', () => {
+  const result = vet({ header: example.header, project: example.project });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test('repository: omitting it with header.project-si-source is rejected', () => {
+  const result = vet({ header: childExample.header });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /repository: field is required but not present/);
+});
+
+test('project: a child file with header.project-si-source may omit it', () => {
+  const result = vet(childExample);
+  assert.equal(result.status, 0, result.stderr);
+});
