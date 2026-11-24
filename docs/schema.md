@@ -482,7 +482,7 @@ Date is a date in the format YYYY-MM-DD
 Email is a valid email address
 
 - **Type**: `string`
-- **Value**: `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$`
+- **Value**: `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
 
 ---
 
@@ -491,7 +491,7 @@ Email is a valid email address
 SchemaVersion is a version string in the format X.Y.Z
 
 - **Type**: `string`
-- **Value**: `^[1-9]+\\.[0-9]+\\.[0-9]+$`
+- **Value**: `^[1-9]+\.[0-9]+\.[0-9]+$`
 
 ---
 
@@ -500,7 +500,7 @@ SchemaVersion is a version string in the format X.Y.Z
 URL is a web URL beginning with http:// or https://
 
 - **Type**: `string`
-- **Value**: `^https?://[^\\s]+$`
+- **Value**: `^https?://[^\s]+$`
 
 ---
 
