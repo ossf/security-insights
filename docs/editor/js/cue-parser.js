@@ -536,6 +536,14 @@ const CueParser = (function() {
         let fieldName;
         let fieldLine;
 
+        // Conditional fields (`if cond { ... }`) only tighten requirements
+        // that `cue vet` checks; the editor keeps the plain field definitions.
+        if (this.check(TokenType.IDENTIFIER) && this.peek().value === 'if' &&
+            this.peek(1).type !== TokenType.COLON && this.peek(1).type !== TokenType.QUESTION) {
+          this.skipComprehension();
+          continue;
+        }
+
         if (this.check(TokenType.IDENTIFIER)) {
           const token = this.advance();
           fieldName = token.value;
@@ -578,6 +586,18 @@ const CueParser = (function() {
         kind: 'struct',
         fields: fields
       };
+    }
+
+    skipComprehension() {
+      while (!this.check(TokenType.LBRACE) && !this.check(TokenType.EOF)) {
+        this.advance();
+      }
+      let depth = 0;
+      do {
+        const token = this.advance();
+        if (token.type === TokenType.LBRACE) depth++;
+        if (token.type === TokenType.RBRACE) depth--;
+      } while (depth > 0 && !this.check(TokenType.EOF));
     }
 
     parseFieldType() {

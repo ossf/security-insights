@@ -113,6 +113,16 @@ import (
 
 	// repository describes repository-related configurations, including status, policies, team members, documentation, license, releases, and security posture. Required for single-repository files and for child files in a multi-repository project (i.e. files that set `header.project-si-source`). Optional in a parent file when project-level information is the only thing the parent contributes.
 	repository?: #Repository
+
+	// A file without `header.project-si-source` must carry its own project information.
+	if header["project-si-source"] == _|_ {
+		project!: #Project
+	}
+
+	// A child file that inherits project information must describe its repository.
+	if header["project-si-source"] != _|_ {
+		repository!: #Repository
+	}
 }
 
 // The Header object captures high-level metadata about the schema.

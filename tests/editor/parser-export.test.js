@@ -46,6 +46,19 @@ test('parser defaults to unknown version and accepts explicit metadata', () => {
   );
 });
 
+test('parser keeps a field that is named if', () => {
+  const parsed = CueParser.parse([
+    '#Thing: {',
+    '  if: string',
+    '  name?: string',
+    '  if cond {',
+    '    other!: string',
+    '  }',
+    '}'
+  ].join('\n'));
+  assert.deepEqual(Object.keys(parsed.getType('#Thing').fields), ['if', 'name']);
+});
+
 test('fetchAndParse carries optional version metadata without a default', async () => {
   const originalFetch = global.fetch;
   global.fetch = async () => ({
